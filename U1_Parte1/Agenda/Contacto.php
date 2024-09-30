@@ -1,14 +1,17 @@
 <?php
 class Contacto{
     private $id,$nombre,$telefono,$tipo,$foto;
-function __construct($id,$nombre,$telefono,$tipo,$foto)
-{
-    $this->id=$id;
-    $this->nombre=$nombre;
-    $this->telefono=$telefono;
-    $this->tipo=$tipo;
-    $this->foto=$foto;
-}
+
+
+    function __construct($id,$nombre,$telefono,$tipo,$foto)
+    {
+        $this->id=$id;
+        $this->nombre=$nombre;
+        $this->telefono=$telefono;
+        $this->tipo=$tipo;
+        $this->foto=$foto;
+    }
+    
 
     /**
      * Get the value of id

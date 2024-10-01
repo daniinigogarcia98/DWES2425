@@ -42,13 +42,18 @@ $modelo = new Modelo('agenda.dat');
                 echo '<h3 style="color:red;">Error, hay campos vacíos</h3>';
             }
             else{
+                //Chequear si ya hay un contacto con el mismo telefono
+                $persona=$modelo->obtenerContacto($_POST['telef']);
+                if ($persona==null) {
+                    
+                
                 $id = $modelo->obtenerID();
                 //El nombre del fichero será el el instante de tiempo
                 // en el que se sube y el nombre original.
                 //Se guardarán en la carpeta img
                 $nombref='img/'.time().$_FILES['foto']['name'];
     
-                $c=new Contacto($id,$_POST['nombre'],$_POST['telf'],
+                $c=new Contacto($id,$_POST['nombre'],$_POST['telef'],
                 $_POST['tipo'],$nombref);
     
                 //Guardar el contacto en el fichero
@@ -59,10 +64,38 @@ $modelo = new Modelo('agenda.dat');
                 $origen = $_FILES['foto']['tmp_name'];
                 move_uploaded_file($origen,$destino);
                 echo "<h3>Contacto Guardado</h3>";
+                }
+                else {
+                    echo '<h3 style="color:red;">Error:Ya existe un contacto con ese tlf:'.$persona->getNombre().'</h3>';
+                }
             }
-        } else {
+            
         }
+            ?>
+            <table border="1px solid black">
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Teléfono</th>
+                    <th>Tipo</th>
+                    <th>Foto</th>
+                </tr>
+            
+            <?php
+            //Mostrar contactos de la agenda
+            $contactos=$modelo->obtenerContactos();
+            foreach($contactos as $c){
+                echo '<tr>';
+                echo '<td>'.$c->getId().'</td>';
+                echo '<td>'.$c->getNombre().'</td>';
+                echo '<td>'.$c->getTelefono().'</td>';
+                echo '<td>'.$c->getTipo().'</td>';
+                echo '<td><img src="'.$c->getFoto().'"width="120px"/></td>';
+                echo '</tr>';
+            }
+       
         ?>
+        </table>
     </form>
 </body>
 

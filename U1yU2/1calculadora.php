@@ -1,5 +1,5 @@
 <?php
-const MINOMBRE = 'Rosa';
+const MINOMBRE = 'Daniel';
 //Chequear si se han escrito números
 if(!empty($_GET['n1']) and !empty($_GET['n2'])){
     $n1=$_GET['n1'];

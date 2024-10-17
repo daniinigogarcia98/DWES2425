@@ -13,9 +13,7 @@ class Modelo
                 $this->conexion = new PDO('mysql:host=' 
                 . $config['urlBD'], ';port=' 
                 . $config['puerto'] . ';dbname=' 
-                . $config['nombreBD'],'usuario='
-                . $config['usDB'].';password='
-                , $config['psUS']);
+                . $config['nombreBD'], $config['usDB'], $config['psUS']);
             }
         } catch (\Throwable $th) {
             echo $th->getMessage();

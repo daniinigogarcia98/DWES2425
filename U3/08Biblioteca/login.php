@@ -6,7 +6,9 @@ if (isset($_POST['entrar'])) {
       $error='No se pudo conectar a la base de datos';
 }
 else {
-  echo 'Conexión establecida';
+  //comprobar el ususario y la contraseña si los datos son correctos
+  //Guardamos el usuario en la sesion y redirigimos a la pagina principal
+  $us=$bd->loguear($_POST['usuario'],$_POST['ps']);
 }
 }
 ?>
@@ -32,7 +34,7 @@ else {
     </div>
     <div class="mb-3">
         <label for="exampleInputPassword1" class="form-label">Password</label>
-        <input type="password" class="form-control" id="exampleInputPassword1">
+        <input type="password"  name="ps"class="form-control" id="ps">
     </div>
 
     <button type="submit" class="btn btn-primary" name="entrar">Entrar</button>

@@ -1,4 +1,5 @@
 <?php
+require_once 'Usuario.php';
 class Modelo
 {
     private $conexion=null;
@@ -7,13 +8,13 @@ class Modelo
     {
         try {
             $config = $this->obtenerDatos();
-            if ($config == null) {
-                throw new Exception('No se pudo cargar la configuración');
+            if ($config != null) {
 
                 $this->conexion = new PDO('mysql:host=' 
-                . $config['urlBD'], ';port=' 
+                . $config['urlDB'] . ';port=' 
                 . $config['puerto'] . ';dbname=' 
-                . $config['nombreBD'], $config['usDB'], $config['psUS']);
+                . $config['nombreDB'], $config['usDB'], $config['psDB']);
+                
             }
         } catch (\Throwable $th) {
             echo $th->getMessage();
@@ -32,8 +33,32 @@ class Modelo
         } else {
             return null;
         }
+        return $resultado;
     }
 
+    public function loguear($usuario,$ps){
+        //Devuelve null si los datos no son correctos
+        //y un objeto Usuario si son correctos
+        $resultado=null;
+        //Ejecutamos la consulta select * from usuarios where id=nombreUS and ps=psUS cifrada
+        try {
+            //preparar consulta
+            $consulta=$this->conexion->prepare('select * from usuarios where id=? and ps=sha2(?,512)');
+            //rellenar parametros
+            $params=array($usuario,$ps);
+            //ejecutar consulta
+            if($consulta->execute($params)){
+                //Recuperar el resultado y transformarlo en un objeto usuario
+                if($fila=$consulta->fetch()){
+                    $resultado=new Usuario($fila['id'],$fila['tipo']);
+                }
+            }
+
+        } catch (\Throwable $th) {
+            echo $th -> getMessage();
+        }
+        return $resultado;
+    }
     /**
      * Get the value of conexion
      */ 

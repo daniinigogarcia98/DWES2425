@@ -15,7 +15,7 @@ class Modelo
                 . $config['puerto'] . ';dbname=' 
                 . $config['nombreBD'],'usuario='
                 . $config['usDB'].';password='
-                . $config['psUS']);
+                , $config['psUS']);
             }
         } catch (\Throwable $th) {
             echo $th->getMessage();

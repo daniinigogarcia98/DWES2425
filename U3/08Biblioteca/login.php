@@ -1,7 +1,19 @@
+<?php
+require_once 'Modelo.php';
+if (isset($_POST['entrar'])) {
+    $db=new Modelo();
+    if ($db->getConexion() == null) {
+      $error='No se pudo conectar a la base de datos';
+}
+else {
+  echo 'Conexión establecida';
+}
+}
+?>
 <!doctype html>
 <html lang="en">
   <head>
-    <title>Title</title>
+    <title>Biblioteca DWES</title>
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -12,21 +24,24 @@
   <body>
   <div class="container">
 
-<p class="display-2">Biblioteca - Login</p>
-<form width="50%">
+<p class="display-2">Biblioteca DWES</p>
+<form action="" method="post">
     <div class="mb-3">
-        <label for="exampleInputEmail1" class="form-label">Usuario</label>
-        <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
-        <div id="emailHelp" class="form-text">Nunca compartiremos su usuario con nadie más.</div>
+        <label for="usuario" class="form-label">Usuario</label>
+        <input type="text" class="form-control" name="usuario" id="usuario" aria-describedby="userHelp">
     </div>
     <div class="mb-3">
         <label for="exampleInputPassword1" class="form-label">Password</label>
         <input type="password" class="form-control" id="exampleInputPassword1">
-        <div id="emailHelp" class="form-text">Nunca compartiremos su contraseña con nadie más.</div>
     </div>
 
-    <button type="submit" class="btn btn-primary">Entrar</button>
+    <button type="submit" class="btn btn-primary" name="entrar">Entrar</button>
 </form>
+<?php
+if (isset($error)) {
+    echo '<div class="text-danger">'.$error.'</div>';
+}
+?>
 </div>
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->

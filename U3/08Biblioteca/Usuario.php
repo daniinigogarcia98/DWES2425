@@ -1,6 +1,7 @@
+
 <?php
 class Usuario{
-    private $id,$tipo;
+    private $id, $tipo;
 
     public function __construct($id,$tipo)
     {
@@ -9,7 +10,6 @@ class Usuario{
     }
 
     
-
 
     /**
      * Get the value of id
@@ -51,3 +51,4 @@ class Usuario{
         return $this;
     }
 }
+?>

@@ -1,54 +1,61 @@
 <?php
 require_once 'Modelo.php';
-if (isset($_POST['entrar'])) {
-    $db=new Modelo();
-    if ($db->getConexion() == null) {
-      $error='No se pudo conectar a la base de datos';
-}
-else {
-  //comprobar el ususario y la contraseña si los datos son correctos
-  //Guardamos el usuario en la sesion y redirigimos a la pagina principal
-  $us=$bd->loguear($_POST['usuario'],$_POST['ps']);
-}
+if(isset($_POST['entrar'])){
+    $bd = new Modelo();
+    if($bd->getConexion()==null){
+        $error = 'Error, no se puede conectar con la BD';
+    }
+    else{
+        //Comprobar usuario y ps y si los datos son correctos
+        //Guardamos el usuario en una sesión y redirigimos
+        //a la página préstamos.php
+        $us = $bd->loguear($_POST['usuario'],$_POST['ps']);
+        if($us!=null){
+            //Almacenamos en la sesión
+            //Redirigimos
+            $error='datos correctos';
+        }
+        else{
+            $error='Error, datos incorrectos';
+        }
+    }
 }
 ?>
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <title>Biblioteca DWES</title>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <!-- Bootstrap CSS -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca</title>
     <link rel="stylesheet" href="css/bootstrap.min.css">
-  </head>
-  <body>
-  <div class="container">
-
-<p class="display-2">Biblioteca DWES</p>
-<form action="" method="post">
-    <div class="mb-3">
-        <label for="usuario" class="form-label">Usuario</label>
-        <input type="text" class="form-control" name="usuario" id="usuario" aria-describedby="userHelp">
-    </div>
-    <div class="mb-3">
-        <label for="exampleInputPassword1" class="form-label">Password</label>
-        <input type="password"  name="ps"class="form-control" id="ps">
-    </div>
-
-    <button type="submit" class="btn btn-primary" name="entrar">Entrar</button>
-</form>
-<?php
-if (isset($error)) {
-    echo '<div class="text-danger">'.$error.'</div>';
-}
-?>
-</div>
-    <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="js/jquery-3.6.0.js"></script>
     <script src="js/popper.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
-  </body>
+</head>
+
+<body>
+    <div class="container">
+
+    <p class="display-2">Biblioteca - Login</p>
+        <form action="" method="post">
+            <div class="mb-3">
+                <label for="exampleInputEmail1" class="form-label">Usuario</label>
+                <input type="text" name="usuario" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp"/>
+            </div>
+            <div class="mb-3">
+                <label for="exampleInputPassword1" class="form-label">Password</label>
+                <input type="password" name="ps" class="form-control" id="exampleInputPassword1">
+            </div>
+        
+            <button type="submit" class="btn btn-primary" name="entrar">Entrar</button>
+        </form>
+        <?php
+        if(isset($error)){
+            echo '<div class="text-danger">'.$error.'</div>';
+        }
+        ?>
+    </div>
+</body>
+
 </html>

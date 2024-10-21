@@ -1,4 +1,3 @@
-
 <?php
 class Usuario{
     private $id, $tipo;

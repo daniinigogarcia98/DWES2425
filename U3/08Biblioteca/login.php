@@ -2,7 +2,8 @@
 require_once 'Modelo.php';
 session_start();
 if(isset($_SESSION['usuario'])){
-    header('Location: prestamos.php');
+    //Redirigimos si ya estamos logueados
+    header('location:prestamos.php');
 }
 if(isset($_POST['entrar'])){
     $bd = new Modelo();
@@ -16,9 +17,9 @@ if(isset($_POST['entrar'])){
         $us = $bd->loguear($_POST['usuario'],$_POST['ps']);
         if($us!=null){
             //Almacenamos en la sesión
-            $_SESSION['usuario']=$us;
+            $_SESSION['usuario'] = $us;
             //Redirigimos
-            header('Location: prestamos.php');
+            header('location:prestamos.php');
         }
         else{
             $error='Error, datos incorrectos';
@@ -33,10 +34,8 @@ if(isset($_POST['entrar'])){
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Biblioteca</title>
-    <link rel="stylesheet" href="css/bootstrap.min.css">
-    <script src="js/jquery-3.6.0.js"></script>
-    <script src="js/popper.min.js"></script>
-    <script src="js/bootstrap.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 </head>
 
 <body>

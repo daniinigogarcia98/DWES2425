@@ -1,5 +1,9 @@
 <?php
 require_once 'Modelo.php';
+session_start();
+if(isset($_SESSION['usuario'])){
+    header('Location: prestamos.php');
+}
 if(isset($_POST['entrar'])){
     $bd = new Modelo();
     if($bd->getConexion()==null){
@@ -12,8 +16,9 @@ if(isset($_POST['entrar'])){
         $us = $bd->loguear($_POST['usuario'],$_POST['ps']);
         if($us!=null){
             //Almacenamos en la sesión
+            $_SESSION['usuario']=$us;
             //Redirigimos
-            $error='datos correctos';
+            header('Location: prestamos.php');
         }
         else{
             $error='Error, datos incorrectos';

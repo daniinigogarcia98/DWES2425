@@ -5,8 +5,11 @@ session_start();
 if(!isset($_SESSION['usuario'])){
     header('location:login.php');
 }
-elseif (isset($_POST['cerrar'])) {
+
+if(isset($_POST['cerrar'])){
     session_destroy();
     header('location:login.php');
 }
+//Creamos objeto de acceso a la BD
+$bd = new Modelo();
 ?>

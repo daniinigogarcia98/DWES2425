@@ -31,7 +31,7 @@ if (isset($_POST['entrar'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Biblioteca - Login</title>
+    <title>Biblioteca</title>
   <link rel="stylesheet" href="css/bootstrap.min.css">
     <script src="js/jquery-3.6.0.js"></script>
     <script src="js/popper.min.js"></script>
@@ -40,7 +40,7 @@ if (isset($_POST['entrar'])) {
 
 <body>
     <div class="container mt-5">
-        <h1 class="text-center mb-4">Biblioteca - Login</h1>
+        <h1 class="text-center mb-4">Biblioteca</h1>
         <form action="" method="post" class="card p-4 shadow">
             <div class="mb-3">
                 <label for="usuario" class="form-label">Usuario</label>

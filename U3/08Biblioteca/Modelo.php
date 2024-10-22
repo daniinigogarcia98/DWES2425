@@ -1,3 +1,4 @@
+
 <?php
 require_once 'Usuario.php';
 
@@ -63,6 +64,27 @@ class Modelo{
             echo $th->getMessage();
         }
 
+        return $resultado;
+    }
+    function obtenerSocios(){
+        //Devuleve un array vacío si no hay socios
+        //Si hay socios devuelve un array con objetos Socio
+        $resultado=array();
+        try {
+            $textoConsulta = 'SELECT * from socios';
+            //Ejecutar consulta
+            $c=$this->conexion->query($textoConsulta);
+            if($c){
+                //Acceder al resultado de la consulta
+                while($fila=$c->fetch()){
+                    $resultado[]=new Socio($fila['id'],$fila['nombre'],
+                    $fila['fechaSancion'],$fila['email'],$fila['us']);
+                }
+            }
+            
+        } catch (\Throwable $th) {
+            echo $th->getMessage();
+        }
         return $resultado;
     }
 

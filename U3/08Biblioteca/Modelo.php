@@ -141,7 +141,19 @@ class Modelo{
         }
         return $resultado;
     }
-
+public function crearPrestamo($idSocio,$idLibro){
+    $resultado=0;
+    try {
+        $this->conexion->beginTransaction();
+        $consulta=$this->conexion->prepare('INSERT into prestamos values(null,?,?,curdate(),adddate(INTERVAL 30 DAY)')
+    } catch (\Throwable $th) {
+        echo $th->getMessage();
+    }catch (PDOException $e) {
+        $this->conexion->rollBack();
+        echo $e->getMessage();
+    }
+    return $resultado;
+}
     /**
      * Get the value of conexion
      */ 

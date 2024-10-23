@@ -19,7 +19,7 @@ if(isset($_POST['pCrear'])){
     $resultado = $bd->comprobar($_POST['socio'],$_POST['libro']);
     if($resultado=='ok'){
         //Hacer el préstamo
-        $error = 'Se puede prestar'  ;
+       $numero=$bd->crearPrestamo($_POST['socio'],$_POST['libro']);
     }
     else{
         $error = $resultado;

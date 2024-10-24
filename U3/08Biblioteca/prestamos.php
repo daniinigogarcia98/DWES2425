@@ -70,6 +70,34 @@ require_once 'controlador.php';
             }
             ?>
         </div>
+        <!--Tabla de préstamos-->
+        <table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Id</th>
+      <th scope="col">Socio</th>
+      <th scope="col">Libro</th>
+      <th scope="col">Fecha Préstamos</th>
+      <th scope="col">Fecha Devolución</th>
+      <th scope="col">Fecha Real Devolución</th>
+      <th scope="col">Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <?php
+    $prestamos = $bd->obtenerPrestamos();
+    foreach ($prestamos as $p) {
+        echo '<tr>';
+        echo '<td>' . $p->getId() . '</td>';
+        echo '<td>' . $p->getSocio()->getNombre().'-'.$p->getSocio()->getUs() . '</td>';
+        echo '<td>' . $p->getLibro()->getTitulo().'-'.$p->getLibro()->getAutor() . '</td>';
+        echo '<td>' .date('d/m/Y',strtotime($p->getFechaP())). '</td>';
+        echo '<td>' .date('d/m/Y',strtotime($p->getFechaD())). '</td>';
+        echo '<td>'.($p->getFechaRD()==null?:date('d/m/Y',strtotime($p->getFechaRD()))).'</td>';
+        echo '</tr>';
+    }
+    ?>
+</table>
     </div>
 </body>
 

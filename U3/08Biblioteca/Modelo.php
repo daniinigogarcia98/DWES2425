@@ -2,7 +2,7 @@
 require_once 'Usuario.php';
 require_once 'Socio.php';
 require_once 'Libro.php';
-
+require_once 'Prestamo.php';
 class Modelo{
     
     private $conexion=null;
@@ -182,6 +182,30 @@ class Modelo{
         return $resultado;
     }
 
+    function obtenerPrestamos(){
+        $resultado = array();
+        try {
+            $consulta=$this->conexion->query('SELECT * FROM prestamos as p INNER JOIN socios as s ON p.socio=s.id INNER JOIN libros as l ON p.libro=l.id');
+            while($fila=$consulta->fetch()){
+                if ($consulta){
+                while($fila=$consulta->fetch()){
+                    $p = new Prestamo($fila[0],new Socio($fila['socio'],$fila['nombre'],$fila['fechaSancion'],$fila['email'],$fila['us'])
+                    ,new Libro($fila['libro'],$fila['titulo'],$fila['ejemplares'],$fila['autor']),$fila['fechaP'],$fila['fechaD'],$fila['fechaRD']);
+                    //Añadimos el prestamo al resultado
+                    $resultado[]=$p;
+                }
+                }
+            }
+        }
+        catch (PDOException $e) {
+            $this->conexion->rollBack();
+            echo $e->getMessage();
+        }
+        catch (\Throwable $th) {
+            echo $th->getMessage();
+        }
+        return $resultado;
+    }
     /**
      * Get the value of conexion
      */ 

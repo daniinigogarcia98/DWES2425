@@ -1,3 +1,4 @@
+
 <?php
 require_once 'Modelo.php';
 session_start();
@@ -19,7 +20,13 @@ if(isset($_POST['pCrear'])){
     $resultado = $bd->comprobar($_POST['socio'],$_POST['libro']);
     if($resultado=='ok'){
         //Hacer el préstamo
-       $numero=$bd->crearPrestamo($_POST['socio'],$_POST['libro']);
+        $numero = $bd->crearPrestamo($_POST['socio'],$_POST['libro']);
+        if($numero>0) {
+            $mensaje='Préstamo nº '.$numero.'registrado';
+        }
+        else{
+            $error = 'Se ha producido un error al crear el préstamo';
+        }
     }
     else{
         $error = $resultado;

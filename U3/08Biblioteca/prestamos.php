@@ -52,7 +52,7 @@ require_once 'controlador.php';
                     </div>
                     <div class="col-md-3">
                         <label for="libro" class="form-label">Libro</label>
-                        <select class="form-select"  name="libro" id="libro">
+                        <select class="form-select" name="libro" id="libro">
                             <?php
                             foreach ($libros as $l) {
                                 echo '<option value="' . $l->getId() . '">'
@@ -60,9 +60,9 @@ require_once 'controlador.php';
                             }
                             ?>
                         </select>
-                    </div> 
+                    </div>
                     <div class="col-md-3">
-                    <label class="form-label">Acción</label><br/>
+                        <label class="form-label">Acción</label><br />
                         <button class="btn btn-outline-secondary" type="submit" id="pCrear" name="pCrear">+</button>
                     </div>
                 </form>
@@ -70,37 +70,48 @@ require_once 'controlador.php';
             }
             ?>
         </div>
-        <form action="" method="post" class="row g-3">
-        <!--Tabla de préstamos-->
-        <table class="table">
-  <thead>
-    <tr>
-      <th scope="col">Id</th>
-      <th scope="col">Socio</th>
-      <th scope="col">Libro</th>
-      <th scope="col">Fecha Préstamos</th>
-      <th scope="col">Fecha Devolución</th>
-      <th scope="col">Fecha Real Devolución</th>
-      <th scope="col">Acciones</th>
-    </tr>
-  </thead>
-  <tbody>
-    <?php
-    $prestamos = $bd->obtenerPrestamos();
-    foreach ($prestamos as $p) {
-        echo '<tr>';
-        echo '<td>' . $p->getId() . '</td>';
-        echo '<td>' . $p->getSocio()->getNombre().'-'.$p->getSocio()->getUs() . '</td>';
-        echo '<td>' . $p->getLibro()->getTitulo().'-'.$p->getLibro()->getAutor() . '</td>';
-        echo '<td>' .date('d/m/Y',strtotime($p->getFechaP())). '</td>';
-        echo '<td>' .date('d/m/Y',strtotime($p->getFechaD())). '</td>';
-        echo '<td>'.($p->getFechaRD()==null?:date('d/m/Y',strtotime($p->getFechaRD()))).'</td>';
-        echo ($p->getFechaRD()==null?'<button class=btn btn-outline-secondary type="submit" name="PDevolver" value="'.$p->getId().'">Devolver</button>':'');
-        echo '</tr>';
-    }
-    ?>
-</table>
-</form>
+        <div>
+            <br />
+            <!-- mostrar préstamos -->
+            <form action="" method="post">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Socio</th>
+                            <th>Libro</th>
+                            <th>Fecha Préstamos</th>
+                            <th>Fecha Devolución</th>
+                            <th>Fecha Real Devolución</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        $prestamos = $bd->obtenerPrestamos();
+                        foreach ($prestamos as $p) {
+                            echo '<tr>';
+                            echo '<td>' . $p->getId() . '</td>';
+                            echo '<td>' . $p->getSocio()->getNombre() . '-' . $p->getSocio()->getUs() . '</td>';
+                            echo '<td>' . $p->getLibro()->getTitulo() . '-' . $p->getLibro()->getAutor() . '</td>';
+                            echo '<td>' . date('d/m/Y', strtotime($p->getFechaP())) . '</td>';
+                            echo '<td>' . date('d/m/Y', strtotime($p->getFechaD())) . '</td>';
+                            echo '<td>' .
+                                ($p->getFechaRD() == null ? '' : date('d/m/Y', strtotime($p->getFechaRD()))) .
+                                '</td>';
+                            echo '<td>';
+                                echo ($p->getFechaRD() == null ?
+                                    '<button class="btn btn-outline-secondary" type="submit" name="pDevolver" value="' . 
+                                        $p->getId() . '">Devolver</button>'
+                                    : '');
+                            echo '</td>';
+                            echo '</tr>';
+                        }
+                        ?>
+                    </tbody>
+                </table>
+            </form>
+        </div>
     </div>
 </body>
 

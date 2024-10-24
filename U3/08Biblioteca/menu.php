@@ -1,4 +1,3 @@
-
 <?php
 if (basename($_SERVER['PHP_SELF']) == 'menu.php') {
     header('location:prestamos.php');

@@ -1,4 +1,3 @@
-
 <?php
 require_once 'Modelo.php';
 session_start();

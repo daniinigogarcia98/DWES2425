@@ -60,7 +60,7 @@ require_once 'controlador.php';
                             }
                             ?>
                         </select>
-                    </div>
+                    </div> 
                     <div class="col-md-3">
                     <label class="form-label">Acción</label><br/>
                         <button class="btn btn-outline-secondary" type="submit" id="pCrear" name="pCrear">+</button>
@@ -70,6 +70,7 @@ require_once 'controlador.php';
             }
             ?>
         </div>
+        <form action="" method="post" class="row g-3">
         <!--Tabla de préstamos-->
         <table class="table">
   <thead>
@@ -94,10 +95,12 @@ require_once 'controlador.php';
         echo '<td>' .date('d/m/Y',strtotime($p->getFechaP())). '</td>';
         echo '<td>' .date('d/m/Y',strtotime($p->getFechaD())). '</td>';
         echo '<td>'.($p->getFechaRD()==null?:date('d/m/Y',strtotime($p->getFechaRD()))).'</td>';
+        echo ($p->getFechaRD()==null?'<button class=btn btn-outline-secondary type="submit" name="PDevolver" value="'.$p->getId().'">Devolver</button>':'');
         echo '</tr>';
     }
     ?>
 </table>
+</form>
     </div>
 </body>
 

@@ -185,7 +185,7 @@ class Modelo{
     function obtenerPrestamos(){
         $resultado = array();
         try {
-            $consulta=$this->conexion->query('SELECT * FROM prestamos as p INNER JOIN socios as s ON p.socio=s.id INNER JOIN libros as l ON p.libro=l.id');
+            $consulta=$this->conexion->query('SELECT * FROM prestamos as p INNER JOIN socios as s ON p.socio=s.id INNER JOIN libros as l ON p.libro=l.id order by p.fechaD desc, p.id');
             while($fila=$consulta->fetch()){
                 if ($consulta){
                 while($fila=$consulta->fetch()){

@@ -206,6 +206,23 @@ class Modelo{
         }
         return $resultado;
     }
+    function obtenerPrestamo($id){
+        $resultado=null;
+        try {
+            $consulta = $this->conexion->prepare("SELECT * FROM prestamos as p inner join socios as s on p.socio=s.id inner join libro as l on p.libro=l.id WHERE p.id=?");
+            $params = array($id);
+            if ($consulta->execute($params)) {
+                if($fila = $consulta->fetch()){
+                    $resultado=new Prestamo($fila[0]
+                    ,new socio ($fila['socio'],$fila['nombre'],$fila['fechaSancion'],$fila['email'],$fila['us'])
+                    ,new libro ($fila['libro'],$fila['titulo'],$fila['ejemplares'],$fila['autor']),$fila['fechaP'],$fila['fechaD'],$fila['fechaRD']);
+                }
+            }
+        } catch (\Throwable $th) {
+            echo $th->getMessage();
+        }
+        return $resultado;
+    }
     /**
      * Get the value of conexion
      */ 

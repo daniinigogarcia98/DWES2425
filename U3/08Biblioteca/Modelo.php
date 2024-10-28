@@ -223,6 +223,28 @@ class Modelo{
         }
         return $resultado;
     }
+    function devolverPrestamo($p,$sancion){
+        $resultado=false;
+        try {
+            //Iniciamos transacción
+            $this->conexion->beginTransaction();
+            //Devolver prestamo
+            $consulta = $this->conexion->prepare("UPDATE prestamos SET fechaRD=curdate() WHERE id=?");
+            $params = array($p->getId());
+            if ($consulta->execute($params) and $consulta->rowCount()==1) {
+                $consulta = $this->conexion->prepare("UPDATE libros SET ejemplares=ejemplares+1 WHERE id=?");
+                $params = array($p->getLibro()->getId());
+
+            }
+        } catch (PDOException $th) {
+            $this->conexion->rollBack();
+            echo $th->getMessage();
+        }
+        catch (\Throwable $th) {
+            echo $th->getMessage();
+        }
+        return $resultado;
+    }
     /**
      * Get the value of conexion
      */ 

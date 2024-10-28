@@ -193,6 +193,7 @@ class Modelo{
                     ,new Libro($fila['libro'],$fila['titulo'],$fila['ejemplares'],$fila['autor']),$fila['fechaP'],$fila['fechaD'],$fila['fechaRD']);
                     //Añadimos el prestamo al resultado
                     $resultado[]=$p;
+                    echo $p->getId();
                 }
                 }
             }
@@ -209,7 +210,8 @@ class Modelo{
     function obtenerPrestamo($id){
         $resultado=null;
         try {
-            $consulta = $this->conexion->prepare("SELECT * FROM prestamos as p inner join socios as s on p.socio=s.id inner join libro as l on p.libro=l.id WHERE p.id=?");
+            $consulta = $this->conexion->prepare("SELECT * FROM prestamos as p inner join socios as s on p.socio=s.id 
+            inner join libros as l on p.libro=l.id WHERE p.id=?");
             $params = array($id);
             if ($consulta->execute($params)) {
                 if($fila = $consulta->fetch()){
@@ -234,7 +236,27 @@ class Modelo{
             if ($consulta->execute($params) and $consulta->rowCount()==1) {
                 $consulta = $this->conexion->prepare("UPDATE libros SET ejemplares=ejemplares+1 WHERE id=?");
                 $params = array($p->getLibro()->getId());
-
+                if ($consulta->execute($params) and $consulta->rowCount()==1) {
+                    //Sancionar socio si es necesario
+                    if($sancion){
+                        $consulta = $this->conexion->prepare("UPDATE socios SET fechaSancion=adddate(curdate(),INTERVAL 1 month) WHERE id=?");
+                        $params = array($p->getSocio()->getId());
+                        if ($consulta->execute($params) and $consulta->rowCount()==1) {
+                            $this->conexion->commit();
+                            $resultado=true;
+                        }
+                    else{
+                        $this->conexion->rollBack();
+                    }
+                }
+                else{
+                    $this->conexion->commit();
+                    $resultado=true;
+                }
+                }
+                else{
+                    $this->conexion->rollBack();
+                }
             }
         } catch (PDOException $th) {
             $this->conexion->rollBack();

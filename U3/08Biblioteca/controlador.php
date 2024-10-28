@@ -34,6 +34,7 @@ if(isset($_POST['pCrear']) and $_SESSION['usuario']->getTipo()=='A'){
 if(isset($_POST['pDevolver']) and $_SESSION['usuario']->getTipo()=='A'){
 //Obtener el préstamo
 $p=$bd->obtenerPrestamo($_POST['pDevolver']);
+$sancion=false;
 if ($p!=null){
 //Chequear si hay que sancionar al socio
 $sancion=false;

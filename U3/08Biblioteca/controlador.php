@@ -92,10 +92,26 @@ if(isset($_POST['sCrear']) and $_SESSION['usuario']->getTipo()=='A'){
     }
 }
 if (isset($_POST['sCrearSocio']) and $_SESSION['usuario']->getTipo() == 'A') {
+    if(!empty($_POST['dni'])and !empty($_POST['tipo'])){}
     //Crear socio
-    //Desactivamos los datos del socio en el formulario
-    unset($_SESSION['crearSocio']);
-
+    $u=new Usuario($_POST['dni'],$_POST['tipo']);
+    if ($_POST['tipo'] == 'A') {
+        if($bd->crearUsuario($u,null)){
+            $mensaje='Usuario Administrador creado';
+        }
+        else{
+            $error='Error, al crear el usuario';
+        }
+    }
+    elseif ($_POST['tipo'] == 'S') {
+        $s=new Socio(0,$_POST['nombre'],'',null,$_POST['email'],$_POST['dni']);
+        if($bd->crearUsuario($u,$s)){
+            $mensaje='Usuario Socio creado';
+        }
+        else{
+            $error='Error, al crear el usuario';
+        }
+    }
 }
 elseif(isset($_POST['dni']) and $_SESSION['tipo'] and$_SESSION['usuario']->getTipo()=='A'){
         //Comprobar si ya hay un usuario con ese dni
@@ -103,7 +119,7 @@ elseif(isset($_POST['dni']) and $_SESSION['tipo'] and$_SESSION['usuario']->getTi
         if($us==null){
             //Puedo crear el nuevo usuario
             if($_POST['tipo']=='A'){
-
+                unset($_SESSION['CrearSocio']);
             }
             elseif($_POST['tipo']=='S'){
             $_SESSION['crearSocio']=true;

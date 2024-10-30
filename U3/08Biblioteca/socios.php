@@ -56,13 +56,13 @@ require_once 'controlador.php';
                     <div class="row g-3">
                         <div class="col-md-3">
                             <label for="dni" class="form-label">DNI</label>
-                            <input type="text" class="form-control" name="dni" id="dni" />
+                            <input type="text" class="form-control" name="dni" id="dni" value="<?php echo(isset($_POST['dni'])?$_POST['dni']:'')?>"/>
                         </div>
                         <div class="col-md-3">
                             <label for="tipo" class="form-label">Tipo</label>
                             <select class="form-select" name="tipo" id="tipo" onchange="submit();">
                                 <option value="A">Administrador</option>
-                                <option value="S">Socio</option>
+                                <option value="S"<?php echo(isset($_POST['tipo'])and $_POST['tipo']=='S'?'selected=selected':'')?>>Socio</option>
                             </select>
                         </div>
                         <!-- quita Boton -->

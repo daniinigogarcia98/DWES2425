@@ -3,6 +3,7 @@ require_once 'Usuario.php';
 require_once 'Socio.php';
 require_once 'Libro.php';
 require_once 'Prestamo.php';
+
 class Modelo{
     
     private $conexion=null;
@@ -182,42 +183,26 @@ class Modelo{
         return $resultado;
     }
 
-    function obtenerPrestamos(){
+    public function obtenerPrestamos(){
         $resultado = array();
         try {
-            $consulta=$this->conexion->query('SELECT * FROM prestamos as p INNER JOIN socios as s ON p.socio=s.id INNER JOIN libros as l ON p.libro=l.id order by p.fechaD desc, p.id');
-            while($fila=$consulta->fetch()){
-                if ($consulta){
+            $consulta = $this->conexion->query('SELECT * from prestamos as p
+                inner join socios as s on p.socio=s.id 
+                inner join libros as l on p.libro=l.id 
+                order by p.fechaD desc,  p.id');
+            if($consulta){
                 while($fila=$consulta->fetch()){
-                    $p = new Prestamo($fila[0],new Socio($fila['socio'],$fila['nombre'],$fila['fechaSancion'],$fila['email'],$fila['us'])
-                    ,new Libro($fila['libro'],$fila['titulo'],$fila['ejemplares'],$fila['autor']),$fila['fechaP'],$fila['fechaD'],$fila['fechaRD']);
-                    //Añadimos el prestamo al resultado
+                    //Creamos objeto préstamo, el socio y el libro son OBJETOS
+                    $p = new Prestamo($fila[0],
+                    new Socio($fila['socio'],$fila['nombre'],
+                                    $fila['fechaSancion'],$fila['email'],$fila['us']),
+                    new Libro($fila['libro'],$fila['titulo'],$fila['ejemplares'],
+                                $fila['autor']),
+                    $fila['fechaP'],
+                    $fila['fechaD'],
+                    $fila['fechaRD']);
+                    //Añadimos el préstamo a resultado
                     $resultado[]=$p;
-                    echo $p->getId();
-                }
-                }
-            }
-        }
-        catch (PDOException $e) {
-            $this->conexion->rollBack();
-            echo $e->getMessage();
-        }
-        catch (\Throwable $th) {
-            echo $th->getMessage();
-        }
-        return $resultado;
-    }
-    function obtenerPrestamo($id){
-        $resultado=null;
-        try {
-            $consulta = $this->conexion->prepare("SELECT * FROM prestamos as p inner join socios as s on p.socio=s.id 
-            inner join libros as l on p.libro=l.id WHERE p.id=?");
-            $params = array($id);
-            if ($consulta->execute($params)) {
-                if($fila = $consulta->fetch()){
-                    $resultado=new Prestamo($fila[0]
-                    ,new socio ($fila['socio'],$fila['nombre'],$fila['fechaSancion'],$fila['email'],$fila['us'])
-                    ,new libro ($fila['libro'],$fila['titulo'],$fila['ejemplares'],$fila['autor']),$fila['fechaP'],$fila['fechaD'],$fila['fechaRD']);
                 }
             }
         } catch (\Throwable $th) {
@@ -225,48 +210,144 @@ class Modelo{
         }
         return $resultado;
     }
-    function devolverPrestamo($p,$sancion){
+    function obtenerPrestamo($id){
+        $resultado = null;
+        try {
+            $consulta = $this->conexion->prepare('SELECT * from prestamos as p 
+                                                    inner join socios as s on p.socio = s.id 
+                                                    inner join libros as l on p.libro = l.id 
+                                                    where p.id = ?');
+            $params=array($id);
+            if($consulta->execute($params)){
+                if($fila=$consulta->fetch()){
+                    $resultado = new Prestamo($fila[0],
+                        new Socio($fila['socio'],$fila['nombre'],$fila['fechaSancion'],$fila['email'],$fila['us']),
+                        new Libro($fila['libro'],$fila['titulo'],$fila['ejemplares'],$fila['autor']),
+                        $fila['fechaP'],
+                        $fila['fechaD'],
+                        $fila['fechaRD']);
+                }
+            }
+
+        } catch (\Throwable $th) {
+            echo $th->getMessage();
+        }
+        return $resultado;
+    }
+
+    function devolverPrestamo($p,$sancionar){
         $resultado=false;
         try {
             //Iniciamos transacción
             $this->conexion->beginTransaction();
-            //Devolver prestamo
-            $consulta = $this->conexion->prepare("UPDATE prestamos SET fechaRD=curdate() WHERE id=?");
-            $params = array($p->getId());
-            if ($consulta->execute($params) and $consulta->rowCount()==1) {
-                $consulta = $this->conexion->prepare("UPDATE libros SET ejemplares=ejemplares+1 WHERE id=?");
-                $params = array($p->getLibro()->getId());
-                if ($consulta->execute($params) and $consulta->rowCount()==1) {
+            //Devolver Préstamo
+            $consulta = $this->conexion->prepare('UPDATE prestamos set fechaRD=curdate() 
+                                                    where id=?');
+            $params=array($p->getId());
+            if($consulta->execute($params) and $consulta->rowCount()==1){
+                //Actualizar ejemplares del libro
+                $consulta=$this->conexion->prepare('UPDATE libros set ejemplares=ejemplares+1 
+                                                        where id=?');
+                $params=array($p->getLibro()->getId());
+                if($consulta->execute($params) and $consulta->rowCount()==1){
                     //Sancionar socio si es necesario
-                    if($sancion){
-                        $consulta = $this->conexion->prepare("UPDATE socios SET fechaSancion=adddate(curdate(),INTERVAL 1 month) WHERE id=?");
-                        $params = array($p->getSocio()->getId());
-                        if ($consulta->execute($params) and $consulta->rowCount()==1) {
-                            $this->conexion->commit();
-                            $resultado=true;
+                    if($sancionar){
+                        $consulta=$this->conexion->prepare('UPDATE socios set 
+                                                            fechaSancion=adddate(curdate(),interval 1 month)
+                                                        where id=?');
+                        $params=array($p->getSocio()->getId());
+                        if($consulta->execute($params) and $consulta->rowCount()==1){
+                           $this->conexion->commit();
+                           $resultado=true; 
                         }
-                    else{
-                        $this->conexion->rollBack();
+                        else{
+                            $this->conexion->rollBack(); 
+                        }
                     }
-                }
-                else{
-                    $this->conexion->commit();
-                    $resultado=true;
-                }
-                }
+                    else{
+                        $this->conexion->commit();
+                        $resultado=true; 
+                    }
+                }   
                 else{
                     $this->conexion->rollBack();
                 }
             }
         } catch (PDOException $th) {
+            //throw $th;
             $this->conexion->rollBack();
             echo $th->getMessage();
+        }
+        catch (\Throwable $th) {
+            //throw $th;
+            echo $th->getMessage();
+        }
+        return $resultado;
+    }
+    function obtenerPrestamosSocio($us){
+        $resultado = array();
+        try {
+            //Seleccionamos los préstamos de un socio
+            $consulta = $this->conexion->prepare('SELECT * from prestamos as p
+                            inner join socios as s on p.socio=s.id 
+                            inner join libros as l on p.libro=l.id 
+                             where s.us = ?');
+            $params=array($us->getId());
+            if($consulta->execute($params)){
+                while($fila=$consulta->fetch()){
+                    $resultado[]= new Prestamo($fila[0],
+                            new Socio($fila['socio'],$fila['nombre'],$fila['fechaSancion'],$fila['email'],$fila['us']),
+                            new Libro($fila['libro'],$fila['titulo'],$fila['ejemplares'],$fila['autor']),
+                            $fila['fechaP'],
+                            $fila['fechaD'],
+                            $fila['fechaRD']);
+                }
+            }
+            
+        } catch (\Throwable $th) {
+            echo $th->getMessage();
+        }
+        return $resultado;
+    }
+    public function crearLibro($l){
+        $resultado=0;
+        try {
+            $consulta = $this->conexion->prepare('INSERT into libros values
+                (null,?,?,?)');
+            $params=array($l->getTitulo(),$l->getEjemplares(),$l->getAutor());
+            if($consulta->execute($params)){
+                //Comprobamos si se ha insertado 1 fila
+                if($consulta->rowCount()==1){
+                    //Obtenemos el id del préstamos creado
+                    $resultado = $this->conexion->lastInsertId();
+                }
+            }
+        } 
+        catch (PDOException $e) {
+            echo $e->getMessage();
         }
         catch (\Throwable $th) {
             echo $th->getMessage();
         }
         return $resultado;
     }
+    function obtenerUsuarioDni($dni){
+        $resultado=null;
+        try {
+            $consulta=$this->conexion->prepare('SELECT * from usuarios where upper(id) = upper(?)');
+            $params=array($dni);
+            if($consulta->execute($params)){
+                if($fila=$consulta->fetch()){
+                    $resultado=new Usuario($fila['id'],$fila['tipo']);
+                }
+            }
+        } catch (\Throwable $th) {
+            echo $th->getMessage();
+        }
+
+        return $resultado;
+    }
+
     /**
      * Get the value of conexion
      */ 

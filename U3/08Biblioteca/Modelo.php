@@ -384,7 +384,22 @@ class Modelo{
         }
         return $resultado;
     }
-
+public function obtenerDatosUsSocios(){
+        $resultado = array();
+        try {
+            $consulta=$this->conexion->query('SELECT * from usuarios as u left outer join socios as s on u.id=s.us order by u.tipo,u.id');
+            //Ejecutar consulta
+             while($fila=$consulta->fetch()){
+                $r=array(new Usuario($fila[0],$fila['tipo']),new Socio($fila[3],$fila['nombre'],$fila['fechaSancion'],$fila['email'],$fila['us']));
+                $resultado[]=$r;
+            }
+            
+            
+        } catch (\Throwable $th) {
+            echo $th->getMessage();
+        }
+        return $resultado;
+    }
     /**
      * Get the value of conexion
      */ 

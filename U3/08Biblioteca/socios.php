@@ -75,7 +75,7 @@ require_once 'controlador.php';
 
                     </div>
                     <?php
-                    if(isset($_POST['tipo']) and $_SESSION['tipo']=='S'){
+                    if(isset($_POST['tipo']) and $_POST['tipo']=='S'){
                     ?>
                     <div class="row g-3">
                         <div class="col-md-3">
@@ -115,8 +115,33 @@ require_once 'controlador.php';
                         </tr>
                     </thead>
                     <tbody>
-
-
+                        <?php
+                        $datos=$bd->obtenerDatosUsSocios();
+                        foreach ($datos as $d) {
+                            $u=$d[0];
+                            $s=$d[1];
+                            echo '<tr>';
+                            echo '<td>' . $u->getId() . '</td>';
+                            echo '<td>' . $u->getTipo() . '</td>';
+                            if($u->getTipo()=='S'){
+                                echo '<td>' . $s->getId() . '</td>';
+                                echo '<td>' . $s->getNombre() . '</td>';
+                                echo '<td>' .($s->getFechaSancion()==null?'':$s->getFechaSancion()).'</td>';
+                                echo '<td>' . $s->getEmail() . '</td>';
+                            }
+                            else{
+                                echo '<td></td>';
+                                echo '<td></td>';
+                                echo '<td></td>';
+                                echo '<td></td>';
+                            }
+                            echo '<td>'.($u->getTipo()=='S'?'<button class="btn btn-outline-secondary" type="submit" id="sMSocio" name="sMSocio" 
+                                    value="' . $u->getId() . '">Modificar</button>':'').'</td>';
+                                    echo '<td>'.($u->getTipo()=='S'?'<button class="btn btn-outline-secondary" type="submit"id="sBSocio" name="sBSocio" 
+                                    value="' . $u->getId() . '">Borrar</button>':'').'</td>';
+                            echo '</tr>';
+                        }
+                        ?>
                     </tbody>
                 </table>
             </form>

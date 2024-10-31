@@ -1,5 +1,8 @@
+sudo nano o gedit/etc/php/8.3/apache2/php.ini
+modificar en php.ini
 [XDebug]
 zend_extension = /usr/lib/php/20230831/xdebug.so
 xdebug.mode=debug
 xdebug.start_with_request=yes
-/etc/php/8.3/cli/conf.d/20-xdebug.ini
+luego modificar en 
+sudo nano o gedit/etc/php/8.3/cli/conf.d/20-xdebug.ini

@@ -75,7 +75,7 @@ require_once 'controlador.php';
 
                     </div>
                     <?php
-                    if(isset($_SESSION['crearSocio']) and $_SESSION['crearSocio']){
+                    if(isset($_POST['tipo']) and $_SESSION['tipo']=='S'){
                     ?>
                     <div class="row g-3">
                         <div class="col-md-3">

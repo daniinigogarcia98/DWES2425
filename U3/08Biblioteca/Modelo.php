@@ -347,41 +347,44 @@ class Modelo{
 
         return $resultado;
     }
-public function crearUsuario($u,$s){
-    $resultado=false;
 
-    try {
-        $this->conexion->beginTransaction();
-        //Crear usuario
-        $consulta=$this->conexion->prepare("INSERT INTO usuarios VALUES (?,sha2(?,512),?");
-        $params=array($u->getId(),$u->getId(),$u->getTipo());
-        if($consulta->execute($params) and $consulta->rowCount()==1){
-            if ($s!=null){
-                //Crear socio
-                $consulta=$this->conexion->prepare("INSERT INTO socios VALUES (null,?,null,?,?)");
-                $params=array($u->getNombre(),$u->getEmail(),$s->getUs());
-                if($consulta->execute($params) and $consulta->rowCount()==1){
-                    $this->conexion->commit();
-                    $resultado=true;
+    public function crearUsuario($u,$s){
+        $resultado=false;
+        try {
+            $this->conexion->beginTransaction();
+            //Crear usuario
+            $consulta=$this->conexion->prepare('INSERT into usuarios values (?,sha2(?,512),?)');
+            $params=array($u->getId(),$u->getId(),$u->getTipo()); 
+            if($consulta->execute($params) and $consulta->rowCount()==1){
+                //Comprobar si crear socio
+                if($s!=null){
+                    //Crear Socio
+                    $consulta=$this->conexion->prepare('INSERT into socios values (null,?,null,?,?)');
+                    $params=array($s->getNombre(),$s->getEmail(),$s->getUs());
+                    if($consulta->execute($params) and $consulta->rowCount()==1){
+                        $this->conexion->commit();
+                        $resultado=true;
+                    }
+                    else{
+                        $this->conexion->rollBack();
+                    }
                 }
                 else{
-                    $this->conexion->rollBack();
+                    $this->conexion->commit();
+                    $resultado=true; 
                 }
             }
-            else{
-                $this->conexion->commit();
-                $resultado=true;
-            }
+        } 
+        catch (\PDOException $e) {
+            $this->conexion->rollBack();
+            echo $e->getMessage();
         }
-    } catch (\PDOException $e) {
-        $this->conexion->rollBack();
-        echo $e->getMessage();
+        catch (\Throwable $th) {
+            echo $th->getMessage();
+        }
+        return $resultado;
     }
-    catch (\Throwable $th) {
-        echo $th->getMessage();
-    }
-    return $resultado;
-}
+
     /**
      * Get the value of conexion
      */ 

@@ -1,3 +1,4 @@
+
 <?php
 require_once 'Usuario.php';
 require_once 'Socio.php';
@@ -384,22 +385,79 @@ class Modelo{
         }
         return $resultado;
     }
-public function obtenerDatosUsSocios(){
-        $resultado = array();
+    public function obtenerDatosUsSocios(){
+        $resultado=array();
+
         try {
-            $consulta=$this->conexion->query('SELECT * from usuarios as u left outer join socios as s on u.id=s.us order by u.tipo,u.id');
-            //Ejecutar consulta
-             while($fila=$consulta->fetch()){
-                $r=array(new Usuario($fila[0],$fila['tipo']),new Socio($fila[3],$fila['nombre'],$fila['fechaSancion'],$fila['email'],$fila['us']));
-                $resultado[]=$r;
-            }
+            $consulta=$this->conexion->query('SELECT * from usuarios as u left outer join socios as s 
+                                                on u.id = s.us  order by u.tipo, u.id');
             
+            while($fila=$consulta->fetch()){
+                $resultado[] = array(new Usuario($fila[0],$fila['tipo']), 
+                new Socio($fila[3],$fila['nombre'],$fila['fechaSancion'],$fila['email'],$fila['us']));
+            }
             
         } catch (\Throwable $th) {
             echo $th->getMessage();
         }
         return $resultado;
+        
     }
+
+    function obtenerSocioDni($dni){
+        $resultado=null;
+        try {
+            $consulta=$this->conexion->prepare('SELECT * from socios where upper(us) = upper(?)');
+            $params=array($dni);
+            if($consulta->execute($params)){
+                if($fila=$consulta->fetch()){
+                    $resultado=new Socio($fila['id'],$fila['nombre'],
+                                   $fila['fechaSancion'],$fila['email'],$fila['us']);
+                }
+            }
+        } catch (\Throwable $th) {
+            echo $th->getMessage();
+        }
+
+        return $resultado;
+    }
+    function modificarUSySocio($u,$s,$dniAntiguo){
+        $resultado=false;
+        try {
+            $this->conexion->beginTransaction();
+            //Modficar usuario
+            $consulta=$this->conexion->prepare('UPDATE usuarios set dni = ? where dni = ?');
+            $params=array($u->getId(),$dniAntiguo); 
+            if($consulta->execute($params) and $consulta->rowCount()==1){
+                //Comprobar si crear socio
+                if($s!=null){
+                    //Modificar Socio
+                    $consulta=$this->conexion->prepare('UPDATE socios set nombre = ?, fechaSancion=?, email=?');
+                    $params=array($s->getNombre(),$s->getEmail(),$s->getUs());
+                    if($consulta->execute($params) and $consulta->rowCount()==1){
+                        $this->conexion->commit();
+                        $resultado=true;
+                    }
+                    else{
+                        $this->conexion->rollBack();
+                    }
+                }
+                else{
+                    $this->conexion->commit();
+                    $resultado=true; 
+                }
+            }
+        } 
+        catch (\PDOException $e) {
+            $this->conexion->rollBack();
+            echo $e->getMessage();
+        }
+        catch (\Throwable $th) {
+            echo $th->getMessage();
+        }
+        return $resultado;
+    }
+
     /**
      * Get the value of conexion
      */ 

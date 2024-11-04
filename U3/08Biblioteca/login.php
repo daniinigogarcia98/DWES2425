@@ -41,7 +41,7 @@ if (isset($_POST['entrar'])) {
 
 <body>
     <div class="container mt-5">
-        <h1 class="text-center mb-4">Biblioteca</h1>
+        <h1 class="text-center mb-4">Biblioteca<img src="img/biblioteca.png" width="100" height="100"></h1>
         <form action="" method="post" class="card p-4 shadow">
             <div class="mb-3">
                 <label for="usuario" class="form-label">Usuario</label>

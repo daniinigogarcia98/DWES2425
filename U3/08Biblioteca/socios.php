@@ -135,8 +135,8 @@ require_once 'controlador.php';
                                     echo '<td></td>';
                                 }
                                 echo '<td>'.
-                                '<button class="btn btn-outline-secondary" type="submit" id="sMSocio" name="sMSocio" value="'.$u->getId().'">Modificar</button>
-                                <button class="btn btn-outline-secondary" type="submit" id="sBSocio" name="sBSocio" value="'.$u->getId().'">Borrar</button>'
+                                generarBotones('sMSocio','SGSocio','Modificar','Guardar','sMSocio',$u->getId()).
+                                generarBotones('sBSocio','SCSocio','Borrar','Cancelar','sMSocio',$u->getId())
                                 .'</td>';
                                 echo '</tr>';
                             }

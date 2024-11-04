@@ -29,6 +29,7 @@ require_once 'controlador.php';
     <link href="css/bootstrap-utilities.rtl.min.css" rel="stylesheet"/>
     <script src="js/bootstrap.bundle.min.js"></script>
 </head>
+
 <body>
     <?php
     require_once 'menu.php';
@@ -71,8 +72,6 @@ require_once 'controlador.php';
                             <label class="form-label">Acción</label><br />
                             <button class="btn btn-outline-secondary" type="submit" id="sCrearSocio" name="sCrearSocio">+</button>
                         </div>
-        
-
                     </div>
                     <?php
                     if(isset($_POST['tipo']) and $_POST['tipo']=='S'){
@@ -88,9 +87,9 @@ require_once 'controlador.php';
                         </div>
                         
                     </div>
-                <?php
-                }
-                ?>
+                    <?php
+                    }
+                    ?>
                 </form>
             <?php
             }
@@ -116,32 +115,33 @@ require_once 'controlador.php';
                     </thead>
                     <tbody>
                         <?php
-                        $datos=$bd->obtenerDatosUsSocios();
-                        foreach ($datos as $d) {
-                            $u=$d[0];
-                            $s=$d[1];
-                            echo '<tr>';
-                            echo '<td>' . $u->getId() . '</td>';
-                            echo '<td>' . $u->getTipo() . '</td>';
-                            if($u->getTipo()=='S'){
-                                echo '<td>' . $s->getId() . '</td>';
-                                echo '<td>' . $s->getNombre() . '</td>';
-                                echo '<td>' .($s->getFechaSancion()==null?'':$s->getFechaSancion()).'</td>';
-                                echo '<td>' . $s->getEmail() . '</td>';
+                            $datos = $bd->obtenerDatosUsSocios();
+                            foreach($datos as $d){
+                                $u=$d[0];
+                                $s=$d[1];
+                                echo '<tr>';
+                                echo '<td>'.generarInput('input','dni',$u->getId(),'sMSocio',$u->getId()).'</td>';
+                                echo '<td>'.$u->getTipo().'</td>';
+                                if($u->getTipo()=='S'){
+                                    echo '<td>'.$s->getId().'</td>';
+                                    echo '<td>'.generarInput('input ','nombre',$s->getNombre(),'sMSocio',$s->getNombre()).'</td>';
+                                    echo '<td>'.($s->getFechaSancion()==null?'':generarInput('input type="date"','fSancion',$s->getFechaSancion(),'sMSocio',$u->getId())).'</td>';
+                                    echo '<td>'.generarInput('input type="email"','email',$s->getEmail(),'sMSocio',$u->getId(),).'</td>';
+                                }
+                                else{
+                                    echo '<td></td>';
+                                    echo '<td></td>';
+                                    echo '<td></td>';
+                                    echo '<td></td>';
+                                }
+                                echo '<td>'.
+                                '<button class="btn btn-outline-secondary" type="submit" id="sMSocio" name="sMSocio" value="'.$u->getId().'">Modificar</button>
+                                <button class="btn btn-outline-secondary" type="submit" id="sBSocio" name="sBSocio" value="'.$u->getId().'">Borrar</button>'
+                                .'</td>';
+                                echo '</tr>';
                             }
-                            else{
-                                echo '<td></td>';
-                                echo '<td></td>';
-                                echo '<td></td>';
-                                echo '<td></td>';
-                            }
-                            echo '<td>'.'<button class="btn btn-outline-secondary" type="submit" id="sMSocio" name="sMSocio" 
-                                    value="' . $u->getId() . '">Modificar</button>'.'</td>';
-                                    echo '<td>'.'<button class="btn btn-outline-secondary" type="submit"id="sBSocio" name="sBSocio" 
-                                    value="' . $u->getId() . '">Borrar</button>'.'</td>';
-                            echo '</tr>';
-                        }
                         ?>
+
                     </tbody>
                 </table>
             </form>

@@ -1,5 +1,16 @@
 <?php
 require_once 'Modelo.php';
+
+function generarInput($tipo,$nombre,$valor,$boton,$valorBoton){
+    if(isset($_POST[$boton]) && $_POST[$boton]==$valorBoton){
+        return '<'.$tipo.' name="'.$nombre.'" value="'.$valor.'"/>';
+    }
+    else{
+        return $valor;
+    }
+}
+
+
 session_start();
 //Si no hay sessión iniciada, redirigimos a login
 if (!isset($_SESSION['usuario'])) {

@@ -425,14 +425,14 @@ class Modelo{
         try {
             $this->conexion->beginTransaction();
             //Modficar usuario
-            $consulta=$this->conexion->prepare('UPDATE usuarios set dni = ? where dni = ?');
+            $consulta=$this->conexion->prepare('UPDATE usuarios set id = ? where id = ?');
             $params=array($u->getId(),$dniAntiguo); 
             if($consulta->execute($params) and $consulta->rowCount()==1){
                 //Comprobar si crear socio
                 if($s!=null){
                     //Modificar Socio
-                    $consulta=$this->conexion->prepare('UPDATE socios set nombre = ?, fechaSancion=?, email=?');
-                    $params=array($s->getNombre(),$s->getEmail(),$s->getUs());
+                    $consulta=$this->conexion->prepare('UPDATE socios set nombre = ?, fechaSancion=?, email=? where id=?');
+                    $params=array($s->getNombre(),$s->getFechaSancion(),$s->getEmail(),$s->getId());
                     if($consulta->execute($params) and $consulta->rowCount()==1){
                         $this->conexion->commit();
                         $resultado=true;

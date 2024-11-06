@@ -193,6 +193,11 @@ if (isset($_POST['sGSocio']) and $_SESSION['usuario']->getTipo() == 'A') {
 
 }
 if (isset($_POST['sBSocio']) and $_SESSION['usuario']->getTipo() == 'A') {
+    if (isset($_POST['sBSocio'])) {
+        $id = $_POST['sBSocio'];
+    } else {
+        $id=$_POST['sDeletesocio'];
+    }
     $u=$bd->obtenerUsuarioDni($_POST['sBSocio']);
     if($u!=null){
         if($u->getId()==$_SESSION['usuario']->getId()){

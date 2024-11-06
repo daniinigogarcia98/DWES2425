@@ -134,9 +134,11 @@ require_once 'controlador.php';
                                     echo '<td></td>';
                                     echo '<td></td>';
                                 }
+                                //Obtener so el socio tiene prestamos para generar ventanas de aviso
+                                $tienePrestamos=sizeof($bd->obtenerPrestamosSocio($u))>0;
                                 echo '<td>'.
-                                generarBotones('sMSocio','SGSocio','Modificar','Guardar','sMSocio',$u->getId()).
-                                generarBotones('sBSocio','SCSocio','Borrar','Cancelar','sMSocio',$u->getId())
+                                generarBotones('sMSocio','SGSocio','Modificar','Guardar','sMSocio',$u->getId(),false).
+                                generarBotones('sBSocio','SCSocio','Borrar','Cancelar','sMSocio',$u->getId(),$tienePrestamos)
                                 .'</td>';
                                 echo '</tr>';
                             }

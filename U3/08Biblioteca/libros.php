@@ -53,20 +53,20 @@ if (basename($_SERVER['PHP_SELF']) == 'menu.php') {
         </div>
         <div>
             <?php
-            if($_SESSION['usuario']->getTipo()=='A'){
+            if ($_SESSION['usuario']->getTipo() == 'A') {
             ?>
                 <form action="" method="post" class="row g-3">
                     <div class="col-md-3">
                         <label for="titulo" class="form-label">Título</label>
-                        <input type="text" class="form-control" name="titulo" id="titulo" placeholder="Título"/>
+                        <input type="text" class="form-control" name="titulo" id="titulo" placeholder="Título" />
                     </div>
                     <div class="col-md-3">
                         <label for="autor" class="form-label">Autor</label>
-                        <input type="text" class="form-control" name="autor" id="autor"  placeholder="Autor"/>
+                        <input type="text" class="form-control" name="autor" id="autor" placeholder="Autor" />
                     </div>
                     <div class="col-md-3">
                         <label for="ejemplares" class="form-label">Ejemplares</label>
-                        <input class="form-control" name="ejemplares" id="ejemplares" value="1" type="number"/>
+                        <input class="form-control" name="ejemplares" id="ejemplares" value="1" type="number" />
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Acción</label><br />
@@ -88,21 +88,21 @@ if (basename($_SERVER['PHP_SELF']) == 'menu.php') {
                             <th>Título</th>
                             <th>Autor</th>
                             <th>Ejemplares</th>
-                            <?php if($_SESSION['usuario']->getTipo()=='A'){?>
+                            <?php if ($_SESSION['usuario']->getTipo() == 'A') { ?>
                                 <th>Acciones</th>
-                            <?php }?>
+                            <?php } ?>
                         </tr>
                     </thead>
                     <tbody>
                         <?php
-                        $libros=$bd->obtenerLibros();
+                        $libros = $bd->obtenerLibros();
                         foreach ($libros as $l) {
                             echo '<tr>';
                             echo '<td>' . $l->getId() . '</td>';
-                            echo '<td>' . $l->getTitulo(). '</td>';
+                            echo '<td>' . $l->getTitulo() . '</td>';
                             echo '<td>' . $l->getAutor() . '</td>';
                             echo '<td>' . $l->getEjemplares() . '</td>';
-                            if($_SESSION['usuario']->getTipo()=='A'){
+                            if ($_SESSION['usuario']->getTipo() == 'A') {
                                 echo '<td>';
                                 echo '<button class="btn btn-outline-secondary" type="submit" name="lModificar" 
                                     value="' . $l->getId() . '">Modificar</button>';

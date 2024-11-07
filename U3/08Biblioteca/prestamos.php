@@ -101,21 +101,19 @@ require_once 'controlador.php';
                             <th>Fecha Préstamos</th>
                             <th>Fecha Devolución</th>
                             <th>Fecha Real Devolución</th>
-                            <?php if($_SESSION['usuario']->getTipo()=='A'){?>
+                            <?php if ($_SESSION['usuario']->getTipo() == 'A') { ?>
                                 <th>Acciones</th>
-                            <?php }?>
+                            <?php } ?>
                         </tr>
                     </thead>
                     <tbody>
                         <?php
-                        if($_SESSION['usuario']->getTipo()=='A'){
+                        if ($_SESSION['usuario']->getTipo() == 'A') {
                             $prestamos = $bd->obtenerPrestamos();
-                        }
-                        elseif($_SESSION['usuario']->getTipo()=='S'){
+                        } elseif ($_SESSION['usuario']->getTipo() == 'S') {
                             $prestamos = $bd->obtenerPrestamosSocio($_SESSION['usuario']);
-                        }
-                        else{
-                            $prestamos=array();
+                        } else {
+                            $prestamos = array();
                         }
                         foreach ($prestamos as $p) {
                             echo '<tr>';
@@ -127,7 +125,7 @@ require_once 'controlador.php';
                             echo '<td>' .
                                 ($p->getFechaRD() == null ? '' : date('d/m/Y', strtotime($p->getFechaRD()))) .
                                 '</td>';
-                            if($_SESSION['usuario']->getTipo()=='A'){
+                            if ($_SESSION['usuario']->getTipo() == 'A') {
                                 echo '<td>';
                                 echo ($p->getFechaRD() == null ?
                                     '<button class="btn btn-outline-secondary" type="submit" name="pDevolver" 

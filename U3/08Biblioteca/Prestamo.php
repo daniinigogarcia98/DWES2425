@@ -1,21 +1,19 @@
 <?php
-class Prestamo
-{
+class Prestamo{
     private $id, $socio, $libro, $fechaP, $fechaD, $fechaRD;
 
-    function __construct($id, $socio, $libro, $fechaP, $fechaD, $fechaRD)
-    {
-        $this->id = $id;
-        $this->socio = $socio;
-        $this->libro = $libro;
-        $this->fechaP = $fechaP;
-        $this->fechaD = $fechaD;
-        $this->fechaRD = $fechaRD;
+    function __construct($id, $socio, $libro, $fechaP, $fechaD, $fechaRD){
+        $this->id=$id; 
+        $this->socio=$socio; 
+        $this->libro=$libro; 
+        $this->fechaP=$fechaP;
+        $this->fechaD=$fechaD; 
+        $this->fechaRD=$fechaRD;
     }
 
     /**
      * Get the value of socio
-     */
+     */ 
     public function getSocio()
     {
         return $this->socio;
@@ -25,7 +23,7 @@ class Prestamo
      * Set the value of socio
      *
      * @return  self
-     */
+     */ 
     public function setSocio($socio)
     {
         $this->socio = $socio;
@@ -35,7 +33,7 @@ class Prestamo
 
     /**
      * Get the value of id
-     */
+     */ 
     public function getId()
     {
         return $this->id;
@@ -45,7 +43,7 @@ class Prestamo
      * Set the value of id
      *
      * @return  self
-     */
+     */ 
     public function setId($id)
     {
         $this->id = $id;
@@ -55,7 +53,7 @@ class Prestamo
 
     /**
      * Get the value of libro
-     */
+     */ 
     public function getLibro()
     {
         return $this->libro;
@@ -65,7 +63,7 @@ class Prestamo
      * Set the value of libro
      *
      * @return  self
-     */
+     */ 
     public function setLibro($libro)
     {
         $this->libro = $libro;
@@ -75,7 +73,7 @@ class Prestamo
 
     /**
      * Get the value of fechaP
-     */
+     */ 
     public function getFechaP()
     {
         return $this->fechaP;
@@ -85,7 +83,7 @@ class Prestamo
      * Set the value of fechaP
      *
      * @return  self
-     */
+     */ 
     public function setFechaP($fechaP)
     {
         $this->fechaP = $fechaP;
@@ -95,7 +93,7 @@ class Prestamo
 
     /**
      * Get the value of fechaD
-     */
+     */ 
     public function getFechaD()
     {
         return $this->fechaD;
@@ -105,7 +103,7 @@ class Prestamo
      * Set the value of fechaD
      *
      * @return  self
-     */
+     */ 
     public function setFechaD($fechaD)
     {
         $this->fechaD = $fechaD;
@@ -115,7 +113,7 @@ class Prestamo
 
     /**
      * Get the value of fechaRD
-     */
+     */ 
     public function getFechaRD()
     {
         return $this->fechaRD;
@@ -125,7 +123,7 @@ class Prestamo
      * Set the value of fechaRD
      *
      * @return  self
-     */
+     */ 
     public function setFechaRD($fechaRD)
     {
         $this->fechaRD = $fechaRD;
@@ -133,3 +131,4 @@ class Prestamo
         return $this;
     }
 }
+?>

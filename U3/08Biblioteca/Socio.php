@@ -1,23 +1,22 @@
 <?php
-class Socio
-{
-    private $id, $nombre, $fechaSancion, $email, $us;
+class Socio{
+    private $id,$nombre,$fechaSancion,$email,$us;
 
-    function __construct($id, $nombre, $fechaSancion, $email, $us)
+    function __construct($id,$nombre,$fechaSancion,$email,$us)
     {
-        $this->id = $id;
-        $this->nombre = $nombre;
-        $this->fechaSancion = $fechaSancion;
-        $this->email = $email;
-        $this->us = $us;
+        $this->id=$id;
+        $this->nombre=$nombre;
+        $this->fechaSancion=$fechaSancion;
+        $this->email=$email;
+        $this->us=$us;
     }
-
-
+    
+    
 
 
     /**
      * Get the value of id
-     */
+     */ 
     public function getId()
     {
         return $this->id;
@@ -27,7 +26,7 @@ class Socio
      * Set the value of id
      *
      * @return  self
-     */
+     */ 
     public function setId($id)
     {
         $this->id = $id;
@@ -37,7 +36,7 @@ class Socio
 
     /**
      * Get the value of nombre
-     */
+     */ 
     public function getNombre()
     {
         return $this->nombre;
@@ -47,7 +46,7 @@ class Socio
      * Set the value of nombre
      *
      * @return  self
-     */
+     */ 
     public function setNombre($nombre)
     {
         $this->nombre = $nombre;
@@ -57,7 +56,7 @@ class Socio
 
     /**
      * Get the value of fechaSancion
-     */
+     */ 
     public function getFechaSancion()
     {
         return $this->fechaSancion;
@@ -67,7 +66,7 @@ class Socio
      * Set the value of fechaSancion
      *
      * @return  self
-     */
+     */ 
     public function setFechaSancion($fechaSancion)
     {
         $this->fechaSancion = $fechaSancion;
@@ -77,7 +76,7 @@ class Socio
 
     /**
      * Get the value of email
-     */
+     */ 
     public function getEmail()
     {
         return $this->email;
@@ -87,7 +86,7 @@ class Socio
      * Set the value of email
      *
      * @return  self
-     */
+     */ 
     public function setEmail($email)
     {
         $this->email = $email;
@@ -97,7 +96,7 @@ class Socio
 
     /**
      * Get the value of us
-     */
+     */ 
     public function getUs()
     {
         return $this->us;
@@ -107,7 +106,7 @@ class Socio
      * Set the value of us
      *
      * @return  self
-     */
+     */ 
     public function setUs($us)
     {
         $this->us = $us;
@@ -115,3 +114,4 @@ class Socio
         return $this;
     }
 }
+?>

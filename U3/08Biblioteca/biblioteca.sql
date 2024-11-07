@@ -1,4 +1,3 @@
-
 drop database if exists biblioteca;
 create database biblioteca;
 use biblioteca;

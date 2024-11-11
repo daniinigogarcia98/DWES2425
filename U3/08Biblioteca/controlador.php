@@ -121,6 +121,48 @@ if (isset($_POST['lCrear']) and $_SESSION['usuario']->getTipo() == 'A') {
         }
     }
 }
+
+if (isset($_POST['lCrear'])) {
+    $titulo = $_POST['titulo'];
+    $autor = $_POST['autor'];
+    $ejemplares = $_POST['ejemplares'];
+
+    $libro = new Libro(null, $titulo, $ejemplares, $autor);
+    if ($bd->crearLibro($libro)) {
+        $mensaje = "Libro creado correctamente.";
+    } else {
+        $error = "Error al crear el libro.";
+    }
+}
+
+if (isset($_POST['lActualizar'])) {
+    $id = $_POST['idLibro'];
+    $titulo = $_POST['titulo'];
+    $autor = $_POST['autor'];
+    $ejemplares = $_POST['ejemplares'];
+
+    $l = new Libro($id, $titulo, $ejemplares, $autor);
+    if ($bd->actualizarLibro($l)) {
+        $mensaje = "Libro actualizado correctamente.";
+    } else {
+        $error = "Error al actualizar el libro.";
+    }
+}
+
+if (isset($_POST['lBorrar'])) {
+    $idLibro = $_POST['lBorrar'];
+
+    // Comprobar si hay préstamos asociados
+    if ($bd->comprobarPrestamos($idLibro)) {
+        $error = "No se puede borrar el libro porque hay préstamos asociados.";
+    } else {
+        if ($bd->borrarLibro($idLibro)) {
+            $mensaje = "Libro borrado correctamente.";
+        } else {
+            $error = "Error al borrar el libro.";
+        }
+    }
+}
 if (isset($_POST['sCrearSocio']) and $_SESSION['usuario']->getTipo() == 'A') {
     if (!empty($_POST['dni']) and !empty($_POST['tipo'])) {
         //Comprobar si ya hay un usuario con ese dni

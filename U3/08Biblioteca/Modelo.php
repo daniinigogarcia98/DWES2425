@@ -124,6 +124,7 @@ class Modelo
         return $resultado;
     }
 
+    
     public function comprobar($socio, $libro)
     {
         $resultado = 'ok';
@@ -353,6 +354,58 @@ class Modelo
         }
         return $resultado;
     }
+    
+    public function actualizarLibro($l)
+    {
+        $resultado = false;
+        try {
+            $consulta = $this->conexion->prepare('UPDATE libros SET titulo = ?, ejemplares = ?, autor = ? WHERE id = ?');
+            $params = array($l->getTitulo(), $l->getEjemplares(), $l->getAutor(), $l->getId());
+            if ($consulta->execute($params) && $consulta->rowCount() == 1) {
+                $resultado = true;
+            }
+        } catch (PDOException $e) {
+            echo $e->getMessage();
+        } catch (\Throwable $th) {
+            echo $th->getMessage();
+        }
+        return $resultado;
+    }
+
+
+    public function comprobarPrestamos($idLibro)
+{
+    $resultado = false;
+    try {
+        $consulta = $this->conexion->prepare('SELECT COUNT(*) FROM prestamos WHERE libro = ?');
+        $params = array($idLibro);
+        if ($consulta->execute($params)) {
+            $count = $consulta->fetchColumn();
+            $resultado = $count > 0; // Retorna true si hay préstamos
+        }
+    } catch (\Throwable $th) {
+        echo $th->getMessage();
+    }
+    return $resultado;
+}
+
+
+public function borrarLibro($idLibro)
+{
+    $resultado = false;
+    try {
+        $consulta = $this->conexion->prepare('DELETE FROM libros WHERE id = ?');
+        $params = array($idLibro);
+        if ($consulta->execute($params) && $consulta->rowCount() == 1) {
+            $resultado = true;
+        }
+    } catch (PDOException $e) {
+        echo $e->getMessage();
+    } catch (\Throwable $th) {
+        echo $th->getMessage();
+    }
+    return $resultado;
+}
     function obtenerUsuarioDni($dni)
     {
         $resultado = null;

@@ -1,3 +1,19 @@
+<?php
+require_once 'Modelo.php';
+
+$m = new Modelo();
+
+function rellenarSelect($valor,$defecto){
+    if(isset($_POST['tipo'])){
+        if($_POST['tipo']==$valor){
+            echo 'selected="selected"';
+        }
+    }
+    elseif($defecto){
+        echo 'selected="selected"';
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -14,19 +30,37 @@
             <legend>Registrar Trabajo</legend>
             <div>
                 <label for="fecha">Fecha Entrada</label><br />
-                <input type="date" id="fecha" name="fecha" value="<?php echo date('Y-m-d') ?>" />
+                <input type="date" id="fecha" name="fecha" value="<?php 
+                    echo (isset($_POST['fecha'])?$_POST['fecha']:date('Y-m-d')) ?>" />
             </div>
             <div>
                 <label for="nombre">Cliente</label><br />
-                <input type="text" id="nombre" name="nombre" placeholder="Nombre cliente" />
+                <input type="text" id="nombre" name="nombre" placeholder="Nombre cliente" value="<?php 
+                    echo (isset($_POST['nombre'])?$_POST['nombre']:'')
+                ?>"/>
             </div>
             <div>
                 <label for="tipo">Tipo</label><br />
+                <select name="tipo_aux" id="tipo_aux">
+                    
+                    <option <?php 
+                    echo (isset($_POST['tipo']) && $_POST['tipo']=='Fiesta'?'selected="selected"':'')
+                    ?>>Fiesta</option>
+                    <option <?php 
+                    echo (isset($_POST['tipo']) && $_POST['tipo']=='Cuero'?'selected="selected"':'')
+                    ?>>Cuero</option>
+                    <option <?php 
+                    echo (isset($_POST['tipo']) && $_POST['tipo']=='Hogar'?'selected="selected"':'')
+                    ?>>Hogar</option>
+                    <option <?php 
+                    echo ((!isset($_POST['tipo'])) || (isset($_POST['tipo']) && $_POST['tipo']=='Textil')?'selected="selected"':'')
+                    ?>>Textil</option>
+                </select>
                 <select name="tipo" id="tipo">
-                    <option>Fiesta</option>
-                    <option>Cuero</option>
-                    <option>Hogar</option>
-                    <option selected="selected">Textil</option>
+                    <option <?php rellenarSelect('Fiesta',false)?>>Fiesta</option>
+                    <option <?php rellenarSelect('Cuero',false)?>>Cuero</option>
+                    <option <?php rellenarSelect('Hogar',false)?>>Hogar</option>
+                    <option <?php rellenarSelect('Textil',true)?>>Textil</option>
                 </select>
             </div>
             <div>
@@ -40,7 +74,9 @@
             </div>
             <div>
                 <label for="importe">Importe</label><br />
-                <input type="number" id="importe" name="importe" value="1" />
+                <input type="number" id="importe" name="importe" value="<?php 
+                echo (isset($_POST['importe'])?$_POST['importe']:1)
+                ?>" />
             </div>
             <div>
                 <input type="submit" name="guardar" value="guardar"/>
@@ -48,6 +84,7 @@
         </fieldset>
     </form>
     <?php
+    
     if (isset($_POST['guardar'])) {
         if (empty($_POST['fecha']) or empty($_POST['nombre']) or empty($_POST['tipo']) or empty($_POST['importe'])) {
             echo 'Rellena fecha, nombre, tipo e importe';
@@ -79,8 +116,37 @@
             echo '<h2>Datos Correctos</h2>';
             echo '<h3>Prenda:'.$_POST['tipo'].'</h3>';
             echo '<h3>Servicio:'.implode('/',$_POST['servicios']).'</h3>';
+            $t = new Trabajo($_POST['fecha'],$_POST['nombre']
+                 ,$_POST['tipo'],implode('/',$_POST['servicios']),$_POST['importe']);
+            if($m->guardarTrabajo($t)){
+                echo 'Trabajo guardado';
+            }
+            else{
+                echo 'Error, Trabajo no guardado';
+            }
         }
     }
     ?>
+    <table>
+        <tr>
+            <th>Fecha</th>
+            <th>Cliente</th>
+            <th>Tipo</th>
+            <th>Servicios</th>
+            <th>Importe</th>
+        </tr>
+    <?php
+    $trabajos = $m->obtenerTrabajos();
+    foreach($trabajos as $t){
+        echo '<tr>';
+        echo '<td>'.$t->getFecha().'</td>';
+        echo '<td>'.$t->getCliente().'</td>';
+        echo '<td>'.$t->getTipo().'</td>';
+        echo '<td>'.$t->getServicios().'</td>';
+        echo '<td>'.$t->getImporte().'</td>';
+        echo '</tr>';
+    }
+    ?>
+    </table>
 </body>
 </html>

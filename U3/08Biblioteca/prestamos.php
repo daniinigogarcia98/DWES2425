@@ -86,6 +86,19 @@ require_once 'controlador.php';
                 </form>
             <?php
             }
+            else{
+                //Pintar la estadística de socio
+                $s=$bd->obtenerSocioDni($_SESSION['usuario']->getId());
+                $datos=$bd->estadistica($s->getId());
+                foreach($datos as $d){
+                     echo '<table border="1">';
+                     echo '<tr><th>IdSocio:</th><td>'.$d[0].'</td></tr>';
+                     echo '<tr><th></th><td>'.$d[1].'</td></tr>';
+                     echo '<tr><th>Fecha libro prestado/Nº de libros:</th><td>'.$d[2].'</td></tr>';
+                     echo '</table>';
+                    // echo '<p>'.$d[0].'-'.$d[1].' -'.$d[2].'</p>';
+                }
+            }
             ?>
         </div>
         <div>

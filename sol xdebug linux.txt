@@ -1,0 +1,15 @@
+sudo nano o gedit/etc/php/8.3/apache2/php.ini
+modificar en php.ini
+[XDebug]
+zend_extension = /usr/lib/php/20230831/xdebug.so
+xdebug.mode=debug
+xdebug.start_with_request=yes
+luego modificar en 
+sudo nano o gedit/etc/php/8.3/cli/conf.d/20-xdebug.ini
+instalar phpmailer
+instalar composer
+modifica con xed 
+sudo xed /etc/php/8.3/apache2/php.ini 
+permitir archivos zip
+;extension=zip
+composer require phpmailer/phpmailer

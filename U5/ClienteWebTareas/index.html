@@ -8,51 +8,118 @@
     <title>Mis Tareas</title>
 </head>
 <body>
-    <form action="">
-        <h2>Crear Tarea</h2>
-        <input type="date" name="fecha" id="fecha">
-        <input type="time" name="hora" id="hora">
-        <input type="text" name="desc" id="desc" placeholder="Descripción">
-        <select name="prioridad" id="prioridad">
-            <option value="Alta">Alta</option>
-            <option selected="selected" value="Media">Media</option>
-            <option value="Baja">Baja</option>
-        </select>
-        <button type="button" name="crear" onclick="crearTareas()">Crear</button>
-    </form>
-    <h2>Lista de Tareas</h2>
-    <table border="1" name="tabla" id="tabla">
+    <div class="container mt-4">
+        <form action="">
+            <h2>Crear Tarea</h2>
+            <div class="mb-3">
+                <input type="date" name="fecha" id="fecha" class="form-control">
+            </div>
+            <div class="mb-3">
+                <input type="time" name="hora" id="hora" class="form-control">
+            </div>
+            <div class="mb-3">
+                <input type="text" name="desc" id="desc" placeholder="Descripción" class="form-control">
+            </div>
+            <div class="mb-3">
+                <select name="prioridad" id="prioridad" class="form-select">
+                    <option value="Alta">Alta</option>
+                    <option selected="selected" value="Media">Media</option>
+                    <option value="Baja">Baja</option>
+                </select>
+            </div>
+            <button type="button" name="crear" class="btn btn-success" onclick="crearTareas()">Crear</button>
+        </form>
+        <h2 class="mt-5">Lista de Tareas</h2>
+        <table class="table table-bordered table-hover" id="tabla">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Prioridad</th>
+                    <th>Descripción</th>
+                    <th>Finalizado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Las filas de la tabla se insertarán aquí dinámicamente -->
+            </tbody>
+        </table>
+    </div>
 
-    </table>
     <script>
+        function crearTareas() {
+            const url = 'http://localhost/DWES2425/U5/APITareas/public/tareas';
+            if (document.getElementById('fecha').value === '' 
+            || document.getElementById('hora').value === '' 
+            || document.getElementById('desc').value === '') {
+                alert('Error: Debe rellenar todos los campos');
+            } else {
+                const datos = {
+                    fecha: document.getElementById('fecha').value,
+                    hora: document.getElementById('hora').value,
+                    descripcion: document.getElementById('desc').value,
+                    prioridad: document.getElementById('prioridad').value
+                }
+                axios.post(url, datos)
+                .then(response => {
+                    const respuesta = response.data;
+                    alert(`Tarea con id ${respuesta.tarea.id} creada`);
+                    cargarTareas();
+                })
+                .catch(error => {
+                    console.log(error);
+                    alert(`Error: ${error.response.data} Estado: ${error.response.status}`);
+                    cargarTareas();
+                    // Limpiar formulario
+                    document.getElementById('fecha').value = '';
+                    document.getElementById('hora').value = '';
+                    document.getElementById('desc').value = '';
+                    document.getElementById('prioridad').value = 'Media';
+                });
+            }
+        }
+
         function cargarTareas() {
             const url = 'http://localhost/DWES2425/U5/APITareas/public/tareas';
             axios.get(url)
-            .then(
-                Response => {
-                    const tareas = Response.data;
-                    const tabla = document.getElementById('tabla');
-                    tabla.innerHTML = '<tr><td>ID</td><td>Fecha</td><td>Hora</td><td>Prioridad</td><td>Descripción</td><td>Finalizado</td></tr>';
-                    tareas.forEach(t => {
-                        const fila =document.createElement('tr');
-                        fila.innerHTML = `<td>${t.id}</td>
-                        <td>${t.fecha}</td>
-                        <td>${t.hora}</td>
-                        <td>${t.prioridad}</td>
-                        <td>${t.descripcion}</td>
-                        <td>${t.finalizado}</td>
-                        <td><button type="button" onclick="finalizarTarea()">Finalizar</button></td>
-                        <td><button type="button" onclick="borrarTarea()">Borrar</button></td>`;
-                        tabla.appendChild(fila);
-
-                    });
-                }
-            );{
-
-            }
-            // .catch(){}
+            .then(Response => {
+                const tareas = Response.data;
+                const tabla = document.getElementById('tabla').getElementsByTagName('tbody')[0];
+                tabla.innerHTML = ''; // Limpiar la tabla antes de agregar nuevas filas
+                tareas.forEach(t => {
+                    const fila = document.createElement('tr');
+                    fila.innerHTML = `<td>${t.id}</td>
+                    <td>${t.fecha}</td>
+                    <td>${t.hora}</td>
+                    <td>${t.prioridad}</td>
+                    <td>${t.descripcion}</td>
+                    <td>${t.finalizado ? 'Sí' : 'No'}</td>
+                    <td>
+                        <button type="button" class="btn btn-warning btn-sm" onclick="finalizarTarea(${t.id})">Finalizar</button>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="borrarTarea(${t.id})">Borrar</button>
+                    </td>`;
+                    tabla.appendChild(fila);
+                });
+            })
+            .catch(error => {
+                console.log(error);
+                alert(`Error: ${error.response.data} Estado: ${error.response.status}`);
+            });
         }
-        window.onload = cargarTareas();
+
+        function finalizarTarea(id) {
+            // Lógica para finalizar tarea
+            alert(`Finalizando tarea con id: ${id}`);
+        }
+
+        function borrarTarea(id) {
+            // Lógica para borrar tarea
+            alert(`Borrando tarea con id: ${id}`);
+        }
+
+        window.onload = cargarTareas;
     </script>
 </body>
 </html>

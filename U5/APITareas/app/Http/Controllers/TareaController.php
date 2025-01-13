@@ -87,8 +87,8 @@ class TareaController extends Controller
             if(isset($request->prioridad)and $tarea->prioridad != $request->prioridad){
                 $tarea->prioridad = $request->prioridad;
             }
-            if(isset($request->finalizado)and $tarea->finalizado != $request->finalizado){
-                $tarea->finalizado = $request->finalizado;
+            if(isset($request->finalizada)and $tarea->finalizada != $request->finalizada){
+                $tarea->finalizada = $request->finalizada;
             }
             //GUARDAR TAREA
             if($tarea->save()){

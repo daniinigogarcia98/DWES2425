@@ -18,7 +18,7 @@ return new class extends Migration
             $table->date('fecha');
             $table->time('hora');
             $table->string('descripcion');
-            $table->boolean('finalizado')->default(false);
+            $table->boolean('finalizada')->default(false);
         });
     }
 

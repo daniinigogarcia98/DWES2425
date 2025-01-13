@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="axios/dist/axios.min.js"></script>
+    <title>Mis Tareas</title>
+</head>
+<body>
+    <form action="">
+        <h2>Crear Tarea</h2>
+        <input type="date" name="fecha" id="fecha">
+        <input type="time" name="hora" id="hora">
+        <input type="text" name="desc" id="desc" placeholder="Descripción">
+        <select name="prioridad" id="prioridad">
+            <option value="Alta">Alta</option>
+            <option selected="selected" value="Media">Media</option>
+            <option value="Baja">Baja</option>
+        </select>
+        <button type="button" name="crear" onclick="crearTareas()">Crear</button>
+    </form>
+    <h2>Lista de Tareas</h2>
+    <table border="1" name="tabla" id="tabla">
+
+    </table>
+    <script>
+        function cargarTareas() {
+            const url = 'http://localhost/DWES2425/U5/APITareas/public/tareas';
+            axios.get(url)
+            .then(
+                Response => {
+                    const tareas = Response.data;
+                    const tabla = document.getElementById('tabla');
+                    tabla.innerHTML = '<tr><td>ID</td><td>Fecha</td><td>Hora</td><td>Prioridad</td><td>Descripción</td><td>Finalizado</td></tr>';
+                    tareas.forEach(t => {
+                        const fila =document.createElement('tr');
+                        fila.innerHTML = `<td>${t.id}</td>
+                        <td>${t.fecha}</td>
+                        <td>${t.hora}</td>
+                        <td>${t.prioridad}</td>
+                        <td>${t.descripcion}</td>
+                        <td>${t.finalizado}</td>
+                        <td><button type="button" onclick="finalizarTarea()">Finalizar</button></td>
+                        <td><button type="button" onclick="borrarTarea()">Borrar</button></td>`;
+                        tabla.appendChild(fila);
+
+                    });
+                }
+            );{
+
+            }
+            // .catch(){}
+        }
+        window.onload = cargarTareas();
+    </script>
+</body>
+</html>

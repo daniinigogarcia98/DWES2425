@@ -2,63 +2,41 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Hash;
 
 class LoginController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
+    function login(Request $request){
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
     }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
+    function registro(Request $request){
+        //Validar datos
+        $request->validate([
+            'nombre' => 'required',
+            'email' => 'required|unique:App\Models\User,email',
+            'ps' => 'required|min:3|max:10',
+            'ps2' => 'required|min:3|max:10|same:ps',
+        ]);
+        try {
+            //Crear usuario
+            $u=new User();
+            $u->name=$request->nombre;
+            $u->email=$request->email;
+            $u->password=Hash::make($request->ps);
+            if($u->save()){
+                return $u;
+            }
+            else{
+                return response()->json(['error'=>'Error al registrar'],500);
+            }
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
     }
+    function logout(Request $request){
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
     }
 }

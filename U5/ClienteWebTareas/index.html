@@ -96,6 +96,21 @@
             });
         }
 
+        function borrarTarea(id){
+            const url=`http://localhost/DWES2425/U5/APITareas/public/tareas/${id}`;
+            if(!confirm('¿Estás seguro de borrar la tarea con id:'+id+'?')){
+                return;
+            }
+            axios.delete(url)
+            .then(response=>{
+                alert(`Tarea con id ${id} borrada`);
+                cargarTareas();
+            })
+            .catch(error=>{
+                console.error(error.response.data);
+                alert(`Error:${error.response.data} Estado:${error.response.status}`);
+            });
+        }
         function cargarTareas(){
             const url='http://localhost/DWES2425/U5/APITareas/public/tareas';
             axios.get(url)

@@ -1,0 +1,767 @@
+Este código PHP y HTML implementa un formulario de inicio de sesión (login) que interactúa con una base de datos. A continuación, te explico cómo funciona paso a paso:
+
+1. Inclusión de un archivo modelo (Modelo.php)
+php
+Copiar
+require_once 'Modelo.php';
+Este código incluye el archivo Modelo.php, que probablemente contiene la clase Modelo con métodos para interactuar con la base de datos, como obtener la conexión y realizar la autenticación del usuario.
+
+2. Conexión a la base de datos
+php
+Copiar
+$bd = new Modelo();
+if($bd->getConexion() == null){
+    $mensaje = 'Error, no hay conexión con la bd';
+}
+Se crea una instancia de la clase Modelo llamada $bd.
+Se verifica si la conexión con la base de datos está establecida a través del método getConexion(). Si la conexión es nula, se establece un mensaje de error.
+3. Verificación del formulario y validación de datos
+php
+Copiar
+else {
+    if(isset($_POST['acceder'])){
+        if(empty($_POST['usuario']) or empty($_POST['ps'])){
+            $mensaje = 'Error, rellena us y ps';
+        }
+Si se ha enviado el formulario (mediante el botón acceder), se verifica que los campos de "usuario" y "contraseña" no estén vacíos.
+Si alguno de estos campos está vacío, se muestra un mensaje de error.
+4. Autenticación del usuario
+php
+Copiar
+else {
+    $retorno = $bd->login($_POST['usuario'], $_POST['ps']);
+    if($retorno == 0){
+        $mensaje = 'Error, no existe usuario';
+    }
+    elseif($retorno == 1){
+        $usuario = $bd->obtenerEmpleado($_POST['usuario']);
+        session_start();
+        $_SESSION['usuario'] = $usuario;
+        header('location:mensajes.php');
+    }
+}
+Si los campos están completos, el código intenta autenticar al usuario mediante el método login() de la clase Modelo.
+Si login() devuelve 0, significa que el usuario no existe en la base de datos, y se muestra el mensaje 'Error, no existe usuario'.
+Si login() devuelve 1, significa que el usuario y la contraseña son correctos, por lo que:
+Se obtiene la información del usuario con el método obtenerEmpleado().
+Se inicia una sesión con session_start().
+Se almacena la información del usuario en la sesión ($_SESSION['usuario']).
+Finalmente, el usuario es redirigido a la página mensajes.php con header('location:mensajes.php').
+5. Formulario HTML
+El formulario HTML contiene los siguientes elementos:
+
+Campo de texto para el ID de empleado (<input type="text" id="usuario" name="usuario"/>).
+Campo de contraseña (<input type="password" id="ps" name="ps"/>).
+Un botón de envío para acceder (<button type="submit" name="acceder">Acceder</button>).
+6. Mostrar mensaje de error
+php
+Copiar
+<div>
+    <h1 style='color:red;'>
+        <?php echo isset($mensaje)?$mensaje:'';?>
+    </h1> 
+</div>
+Si se ha definido un mensaje de error ($mensaje), se muestra en color rojo.
+Resumen del flujo:
+El usuario completa el formulario y lo envía.
+Si los campos están vacíos, se muestra un mensaje de error.
+Si los campos están completos, el sistema verifica si el usuario existe en la base de datos.
+Si el usuario es válido, se inicia una sesión y se redirige a la página de mensajes.
+Si hay algún problema (usuario no encontrado o error en la conexión), se muestra un mensaje de error.
+------------------------------------------------------------------------------------------------------
+Este código es la implementación de una clase Modelo en PHP que interactúa con una base de datos MySQL para gestionar mensajes entre empleados y departamentos. La clase contiene varios métodos que permiten realizar operaciones como obtener mensajes, enviar mensajes, obtener empleados y departamentos, y realizar el login de los usuarios. Vamos a desglosar cada sección y método para explicarlo en detalle.
+
+1. Propiedades de la clase Modelo
+php
+Copiar
+private string $url = 'mysql:host=localhost;port=3306;dbname=mensajes';
+private string $us = 'root';
+private string $ps = 'root';
+private $conexion = null;
+$url: Especifica la URL de la base de datos MySQL, incluyendo el host, puerto y el nombre de la base de datos.
+$us y $ps: Son las credenciales para conectarse a la base de datos (usuario y contraseña).
+$conexion: Almacena la instancia de la conexión a la base de datos (PDO).
+2. Método __construct()
+php
+Copiar
+function __construct()
+{
+    try{
+        $this->conexion = new PDO($this->url, $this->us, $this->ps);
+    }catch(PDOException $e){
+        echo $e->getMessage();
+    }
+}
+El constructor intenta crear una conexión a la base de datos utilizando PDO.
+Si ocurre un error en la conexión, se captura una excepción (PDOException) y se imprime el mensaje de error.
+3. Métodos para obtener mensajes
+a. obtenerMensajesRecidos($empleado)
+php
+Copiar
+function obtenerMensajesRecidos($empleado)
+{
+    $resultado = array();
+    try{
+        $consulta = $this->conexion->prepare(
+            'SELECT * from para as p 
+            inner join mensaje as m using(idMen)
+            inner join empleado as e on m.deEmpleado = e.idEmp 
+            inner join departamento as d on m.paraDepartamento = d.idDep
+            where p.paraEmpleado = ?');
+        $params = array($empleado->getIdEmp());
+        if($consulta->execute($params)){
+            while($fila = $consulta->fetch()){
+                $m = new Mensaje($fila['idMen'], 
+                new Empleado($fila['idEmp'], $fila['dni'], $fila['nombreEmp'], 
+                    $fila['fechaNac'], $fila['departamento'], $fila['cambiarPs']),
+                new Departamento($fila['paraDepartamento'], $fila['nombre']),
+                $fila['asunto'], $fila['fechaEnvio'], $fila['mensaje']);
+                $resultado[] = $m;
+            }
+        }
+    } catch(PDOException $e){
+        echo $e->getMessage();
+    }
+    return $resultado;
+}
+Este método recupera todos los mensajes recibidos por un empleado específico.
+Utiliza una consulta SQL que realiza varias uniones (INNER JOIN) entre las tablas para, mensaje, empleado y departamento para obtener los datos completos del mensaje.
+Los resultados se almacenan en un array $resultado de objetos Mensaje.
+b. obtenerMensajes($empleado)
+php
+Copiar
+function obtenerMensajes($empleado)
+{
+    $resultado = array();
+    try{
+        $consulta = $this->conexion->prepare(
+            'SELECT * from mensaje inner join departamento 
+            on paraDepartamento = idDep 
+            where deEmpleado = ? order by fechaEnvio desc');
+        $params = array($empleado->getIdEmp());
+        if($consulta->execute($params)){
+            while($fila = $consulta->fetch()){
+                $m = new Mensaje($fila['idMen'], 
+                $empleado, 
+                new Departamento($fila['paraDepartamento'], $fila['nombre']),
+                $fila['asunto'], $fila['fechaEnvio'], $fila['mensaje']);
+                $resultado[] = $m;
+            }
+        }
+    } catch(PDOException $e){
+        echo $e->getMessage();
+    }
+    return $resultado;
+}
+Este método obtiene todos los mensajes enviados por un empleado, ordenados por la fecha de envío en orden descendente.
+Similar al anterior, usa una consulta SQL para recuperar los datos y los almacena en un array de objetos Mensaje.
+4. Método para enviar mensajes
+php
+Copiar
+function enviarMensaje(Mensaje $m, $destinarios)
+{
+    $resultado = 0;
+    try{
+        $this->conexion->beginTransaction();  // Inicia una transacción
+        $consulta = $this->conexion->prepare(
+            'INSERT into mensaje values (default, ?, ?, ?, curdate(), ?)');
+        $params = array($m->getDeEmpleado(), $m->getParaDepartamento(), $m->getAsunto(), $m->getMensaje());
+        if($consulta->execute($params)){
+            $idMensaje = $this->conexion->lastInsertId(); // Obtiene el ID del mensaje insertado
+            foreach($destinarios as $d){
+                $consulta = $this->conexion->prepare(
+                    'INSERT into para values (?, ?, false)');
+                $params = array($idMensaje, $d->getIdEmp());
+                if($consulta->execute($params)){
+                    if($consulta->rowCount() != 1){
+                        $this->conexion->rollBack();  // Si no se insertó correctamente, deshace la transacción
+                    }
+                } else {
+                    $this->conexion->rollBack();  // Si hay error, deshace la transacción
+                }
+            }
+            $this->conexion->commit();  // Si todo va bien, confirma la transacción
+            $resultado = $idMensaje;
+            $m->setIdMen($idMensaje);
+        }
+    } catch(PDOException $e){
+        $this->conexion->rollBack();
+        echo $e->getMessage();
+    }
+    return $resultado;
+}
+Este método maneja el proceso de enviar un mensaje.
+Usa una transacción para insertar el mensaje en la tabla mensaje y luego insertar las relaciones entre el mensaje y los destinatarios en la tabla para.
+Si alguna parte de la transacción falla, se deshace todo utilizando rollBack().
+5. Métodos para obtener empleados y departamentos
+a. obtenerEmpleadosDepartamento($idDep)
+php
+Copiar
+function obtenerEmpleadosDepartamento($idDep)
+{
+    $resultado = array();
+    try{
+        $consulta = $this->conexion->prepare(
+            'select * from empleado where departamento = ?');
+        $params = array($idDep);
+        if($consulta->execute($params)){
+            while($fila = $consulta->fetch()){
+                $resultado[] = new Empleado($fila['idEmp'], 
+                    $fila['dni'], $fila['nombreEmp'], $fila['fechaNac'],
+                    $fila['departamento'], $fila['cambiarPs']);
+            }
+        }
+    } catch(PDOException $e){
+        echo $e->getMessage();
+    }
+    return $resultado;
+}
+Recupera todos los empleados que pertenecen a un departamento específico.
+b. obtenerDepartamentos()
+php
+Copiar
+function obtenerDepartamentos()
+{
+    $resultado = array();
+    try{
+        $consulta = $this->conexion->query('SELECT * from departamento order by nombre');
+        if($consulta->execute()){
+            while($fila = $consulta->fetch()){
+                $resultado[] = new Departamento($fila['idDep'], $fila['nombre']);
+            }
+        }
+    } catch(PDOException $e){
+        echo $e->getMessage();
+    }
+    return $resultado;
+}
+Recupera todos los departamentos de la base de datos y los devuelve en un array de objetos Departamento.
+6. Métodos para login y obtener empleado
+a. obtenerEmpleado(int $us)
+php
+Copiar
+function obtenerEmpleado(int $us)
+{
+    $resultado = null;
+    try{
+        $consulta = $this->conexion->prepare(
+            'SELECT * from empleado e inner join departamento d
+            on e.departamento = d.idDep where idEmp = ?');
+        $params = array($us);
+        if($consulta->execute($params)){
+            if($fila = $consulta->fetch()){
+                $resultado = new Empleado($fila['idEmp'], $fila['dni'], 
+                    $fila['nombreEmp'], $fila['fechaNac'],
+                    new Departamento($fila['idDep'], $fila['nombre']),
+                    $fila['cambiarPs']);
+            }
+        }
+    } catch(PDOException $e){
+        echo $e->getMessage();
+    }
+    return $resultado;
+}
+Recupera los datos de un empleado específico por su ID y devuelve un objeto Empleado.
+b. login(int $us, string $ps)
+php
+Copiar
+function login(int $us, string $ps)
+{
+    $resultado = 0;
+    try{
+        $consulta = $this->conexion->prepare('select login(?, ?)');
+        $params = array($us, $ps);
+        if($consulta->execute($params)){
+            if($fila = $consulta->fetch()){
+                return $fila[0];  // Devuelve el resultado de la función almacenada
+            }
+        }
+    } catch(PDOException $e){
+        echo $e->getMessage();
+    }
+    return $resultado;
+}
+Realiza el login de un usuario, utilizando una función almacenada en la base de datos que devuelve un valor dependiendo de si las credenciales son correctas o no.
+7. Métodos de acceso a la conexión
+php
+Copiar
+public function getConexion()
+{
+    return $this->conexion;
+}
+
+public function setConexion($conexion): self
+{
+    $this->conexion = $conexion;
+    return $this;
+}
+Estos métodos permiten obtener o establecer la conexión a la base de datos.
+Resumen
+La clase Modelo gestiona la conexión a una base de datos MySQL y contiene métodos para manejar empleados, departamentos, mensajes, y autenticación (login). Utiliza la biblioteca PDO para ejecutar consultas SQL de forma segura y eficiente, y permite operaciones transaccionales (como enviar mensajes a múltiples destinatarios).
+----------------------------------------------------------------------------------------------------------------------
+Este código PHP define una clase llamada Departamento. A continuación, te explico cada parte de la clase:
+
+1. Propiedades de la clase
+php
+Copiar
+private $idDep, $nombre;
+$idDep: Almacena el ID del departamento.
+$nombre: Almacena el nombre del departamento.
+Estas dos propiedades son privadas (private), lo que significa que solo pueden ser accedidas directamente desde dentro de la clase.
+
+2. Constructor
+php
+Copiar
+public function __construct($idDep, $nombre)
+{
+    $this->idDep = $idDep;
+    $this->nombre = $nombre;
+}
+El constructor es un método especial que se ejecuta cuando se crea una nueva instancia de la clase.
+$idDep y $nombre son los parámetros del constructor que permiten inicializar las propiedades del objeto.
+this->idDep y this->nombre asignan los valores recibidos como parámetros a las propiedades privadas de la clase.
+3. Métodos Getter y Setter
+Los métodos getter y setter permiten acceder y modificar las propiedades privadas de la clase de forma controlada.
+
+a. Getter para idDep
+php
+Copiar
+public function getIdDep()
+{
+    return $this->idDep;
+}
+getIdDep(): Devuelve el valor de la propiedad $idDep.
+b. Getter para nombre
+php
+Copiar
+public function getNombre()
+{
+    return $this->nombre;
+}
+getNombre(): Devuelve el valor de la propiedad $nombre.
+c. Setter para idDep
+php
+Copiar
+public function setIdDep($idDep)
+{
+    $this->idDep = $idDep;
+}
+setIdDep($idDep): Establece (o actualiza) el valor de la propiedad $idDep con el valor pasado como argumento.
+d. Setter para nombre
+php
+Copiar
+public function setNombre($nombre)
+{
+    $this->nombre = $nombre;
+}
+setNombre($nombre): Establece (o actualiza) el valor de la propiedad $nombre con el valor pasado como argumento.
+4. Resumen
+La clase Departamento representa un departamento en un sistema y tiene dos propiedades principales: idDep (el ID del departamento) y nombre (el nombre del departamento).
+
+El constructor permite inicializar estas propiedades al crear un objeto de la clase.
+Los métodos getter (getIdDep() y getNombre()) permiten obtener el valor de las propiedades.
+Los métodos setter (setIdDep() y setNombre()) permiten modificar las propiedades después de que el objeto ha sido creado.
+Este patrón de diseño (uso de getters y setters) es común en la programación orientada a objetos, ya que facilita el control sobre cómo se accede y se modifica el estado de los objetos.
+---------------------------------------------------------------------------------------------------------------------
+Este código PHP define una clase llamada Empleado que representa a un empleado con diferentes atributos relacionados a su información personal y laboral. A continuación, te explico cada parte de la clase.
+
+1. Propiedades de la clase
+php
+Copiar
+private $idEmp, $dni, $nombre, $fechaNac, $departamento, $cambiarPs;
+$idEmp: Almacena el ID del empleado.
+$dni: Almacena el DNI del empleado (un número de identificación personal).
+$nombre: Almacena el nombre del empleado.
+$fechaNac: Almacena la fecha de nacimiento del empleado.
+$departamento: Almacena el departamento al que pertenece el empleado. Esta propiedad podría ser un objeto de la clase Departamento.
+$cambiarPs: Indica si el empleado debe cambiar su contraseña (probablemente un valor booleano).
+2. Constructor
+php
+Copiar
+public function __construct($idEmp, $dni, $nombreEmp, $fechaNac, $departamento, $cambiarPs)
+{
+    $this->idEmp = $idEmp;
+    $this->dni = $dni;
+    $this->nombre = $nombreEmp;
+    $this->fechaNac = $fechaNac;
+    $this->departamento = $departamento;
+    $this->cambiarPs = $cambiarPs;
+}
+El constructor recibe seis parámetros (uno por cada propiedad) y los asigna a las propiedades del objeto usando $this->propiedad, que hace referencia a las propiedades del objeto que se está creando.
+$idEmp: ID del empleado.
+$dni: DNI del empleado.
+$nombreEmp: Nombre completo del empleado.
+$fechaNac: Fecha de nacimiento del empleado.
+$departamento: El departamento en el que trabaja el empleado (esto puede ser un objeto de la clase Departamento).
+$cambiarPs: Una bandera que indica si el empleado necesita cambiar su contraseña.
+3. Métodos Getter y Setter
+Los métodos getter y setter permiten acceder y modificar las propiedades privadas de la clase de manera controlada.
+
+a. Getters
+Los getters son métodos que devuelven el valor de las propiedades privadas de la clase.
+
+getIdEmp(): Devuelve el valor de la propiedad $idEmp (ID del empleado).
+getDni(): Devuelve el valor de la propiedad $dni (DNI del empleado).
+getNombre(): Devuelve el valor de la propiedad $nombre (nombre del empleado).
+getFechaNac(): Devuelve el valor de la propiedad $fechaNac (fecha de nacimiento del empleado).
+getDepartamento(): Devuelve el valor de la propiedad $departamento (el departamento al que pertenece el empleado).
+getCambiarPs(): Devuelve el valor de la propiedad $cambiarPs (indica si el empleado debe cambiar su contraseña).
+b. Setters
+Los setters permiten modificar el valor de las propiedades privadas.
+
+setIdEmp($idEmp): Establece el valor de la propiedad $idEmp (ID del empleado).
+setDni($dni): Establece el valor de la propiedad $dni (DNI del empleado).
+setNombre($nombre): Establece el valor de la propiedad $nombre (nombre del empleado).
+setFechaNac($fechaNac): Establece el valor de la propiedad $fechaNac (fecha de nacimiento del empleado).
+setDepartamento($departamento): Establece el valor de la propiedad $departamento (departamento al que pertenece el empleado).
+setCambiarPs($cambiarPs): Establece el valor de la propiedad $cambiarPs (si el empleado debe cambiar su contraseña).
+4. Resumen
+La clase Empleado tiene las siguientes características:
+
+Representa a un empleado con varias propiedades: ID, DNI, nombre, fecha de nacimiento, departamento y la necesidad de cambiar la contraseña.
+Utiliza un constructor para inicializar estas propiedades cuando se crea un nuevo objeto.
+Ofrece métodos getter para acceder a los valores de las propiedades y métodos setter para modificarlas.
+La propiedad departamento probablemente es un objeto de la clase Departamento, lo que indica que un empleado está relacionado con un departamento específico.
+Este patrón de diseño (uso de getters y setters) ayuda a mantener un control más estricto sobre cómo se accede y se modifican las propiedades de la clase, lo que es útil para mantener la integridad de los datos y para realizar validaciones si fuera necesario en el futuro.
+--------------------------------------------------------------------------------------------------------------------
+Este código PHP define una clase llamada Mensaje, que representa un mensaje enviado por un empleado a un departamento dentro de un sistema. A continuación, te explico cada parte de la clase:
+
+1. Propiedades de la clase
+php
+Copiar
+private $idMen, $deEmpleado, $paraDepartamento, $asunto, $fechaEnvio, $mensaje;
+$idMen: Almacena el ID del mensaje.
+$deEmpleado: Almacena el objeto del empleado que envía el mensaje. Esto probablemente es una instancia de la clase Empleado.
+$paraDepartamento: Almacena el objeto del departamento al que se envía el mensaje. Esto probablemente es una instancia de la clase Departamento.
+$asunto: Almacena el asunto o título del mensaje.
+$fechaEnvio: Almacena la fecha en que se envió el mensaje.
+$mensaje: Almacena el contenido del mensaje.
+2. Constructor
+php
+Copiar
+public function __construct($idMen, $deEmpleado, $paraDepartamento, $asunto, $fechaEnvio, $mensaje)
+{
+    $this->idMen = $idMen;
+    $this->deEmpleado = $deEmpleado;
+    $this->paraDepartamento = $paraDepartamento;
+    $this->asunto = $asunto;
+    $this->fechaEnvio = $fechaEnvio;
+    $this->mensaje = $mensaje;
+}
+El constructor recibe seis parámetros que inicializan las propiedades del objeto:
+$idMen: El ID del mensaje.
+$deEmpleado: El empleado que envía el mensaje (probablemente un objeto de la clase Empleado).
+$paraDepartamento: El departamento al que se envía el mensaje (probablemente un objeto de la clase Departamento).
+$asunto: El asunto del mensaje.
+$fechaEnvio: La fecha en que se envió el mensaje.
+$mensaje: El contenido o cuerpo del mensaje.
+3. Métodos Getter y Setter
+Los métodos getter permiten acceder a las propiedades privadas de la clase, mientras que los setters permiten modificarlas.
+
+a. Getters
+Los getters devuelven el valor de las propiedades de la clase:
+
+getIdMen(): Devuelve el valor de la propiedad $idMen (ID del mensaje).
+getDeEmpleado(): Devuelve el valor de la propiedad $deEmpleado (empleado que envió el mensaje).
+getParaDepartamento(): Devuelve el valor de la propiedad $paraDepartamento (departamento al que se envió el mensaje).
+getAsunto(): Devuelve el valor de la propiedad $asunto (asunto del mensaje).
+getFechaEnvio(): Devuelve el valor de la propiedad $fechaEnvio (fecha de envío del mensaje).
+getMensaje(): Devuelve el valor de la propiedad $mensaje (contenido del mensaje).
+b. Setters
+Los setters permiten modificar el valor de las propiedades de la clase:
+
+setIdMen($idMen): Establece el valor de la propiedad $idMen (ID del mensaje).
+setDeEmpleado($deEmpleado): Establece el valor de la propiedad $deEmpleado (empleado que envió el mensaje).
+setParaDepartamento($paraDepartamento): Establece el valor de la propiedad $paraDepartamento (departamento al que se envió el mensaje).
+setAsunto($asunto): Establece el valor de la propiedad $asunto (asunto del mensaje).
+setFechaEnvio($fechaEnvio): Establece el valor de la propiedad $fechaEnvio (fecha de envío del mensaje).
+setMensaje($mensaje): Establece el valor de la propiedad $mensaje (contenido del mensaje).
+4. Resumen
+La clase Mensaje tiene las siguientes características:
+
+Representa un mensaje enviado por un empleado a un departamento.
+Tiene propiedades como el ID del mensaje, el empleado que lo envía, el departamento al que se envía, el asunto, la fecha de envío y el contenido del mensaje.
+Utiliza un constructor para inicializar estas propiedades cuando se crea un nuevo objeto.
+Ofrece métodos getter para obtener los valores de las propiedades y métodos setter para modificar las propiedades después de que el objeto ha sido creado.
+El uso de getters y setters permite mantener el control sobre los valores de las propiedades, lo que es útil para realizar validaciones o aplicar lógica adicional cuando se establecen o se obtienen estos valores.
+-------------------------------------------------------------------------------------------------------------------
+mensajes.php
+-------------------------------------------------------------------------------------------------------------------
+Este código PHP está diseñado para gestionar un sistema de mensajería dentro de un entorno de trabajo donde los empleados pueden enviar y recibir mensajes. Te voy a explicar paso a paso qué hace el código.
+
+1. Conexión a la Base de Datos
+php
+Copiar
+$bd = new Modelo();
+if($bd->getConexion() == null){
+    $mensaje = 'Error, no hay conexión con la bd';
+}
+Se crea una instancia de la clase Modelo, que maneja la conexión a la base de datos.
+Si no hay conexión a la base de datos, se establece un mensaje de error.
+2. Gestión de Sesión del Empleado
+php
+Copiar
+session_start();
+if(isset($_SESSION['usuario'])){
+    // Hay empleado conectado
+    $empleado = $_SESSION['usuario'];
+}
+else{
+    // Redirigir a login
+    header('location:login.php');
+}
+session_start(): Inicia la sesión PHP, permitiendo acceder a las variables de sesión.
+Si $_SESSION['usuario'] está establecido, significa que un empleado ha iniciado sesión, y se recupera el objeto del empleado en la variable $empleado.
+Si no está establecido, el usuario es redirigido a la página de login (login.php).
+3. Cerrar Sesión
+php
+Copiar
+if(isset($_POST['cerrar'])){
+    session_destroy();
+    header('location:login.php');
+}
+Si el botón Cerrar Sesión es presionado, se destruye la sesión actual con session_destroy() y el usuario es redirigido nuevamente a la página de login.
+4. Enviar un Mensaje
+php
+Copiar
+if(isset($_POST['Enviar'])){
+    if(empty($_POST['asunto']) or empty($_POST['mensaje'])){
+        $mensaje = 'Error, rellena asunto y mensaje';
+    }
+    else{
+        $m = new Mensaje(0, $empleado->getIdEmp(), $_POST['para'], $_POST['asunto'], date('Y-m-d'), $_POST['mensaje']);
+        $destinarios = $bd->obtenerEmpleadosDepartamento($_POST['para']);
+        $id = $bd->enviarMensaje($m, $destinarios);
+        if($id != 0){
+            $mensaje = 'Mensaje nº ' . $m->getIdMen() . ' enviado';
+        }
+        else{
+            $mensaje = 'Error, mensaje no enviado';
+        }
+    }
+}
+Si el formulario es enviado (presionando el botón Enviar):
+Comprobación de campos vacíos: Si los campos de asunto o mensaje están vacíos, se muestra un error.
+Se crea un nuevo objeto Mensaje con los datos del formulario (asunto, mensaje, para que es el departamento destino).
+Se obtienen los empleados del departamento destinatario con el método obtenerEmpleadosDepartamento.
+Se envía el mensaje con enviarMensaje, pasando el objeto $m y los destinatarios.
+Si el mensaje se envía correctamente, se muestra un mensaje de éxito, y si no, se muestra un error.
+5. Formulario para Enviar Mensajes
+html
+Copiar
+<form action="mensajes.php" method="post">
+    <h1 style="color:blue;">Nuevo Mensaje</h1>
+    <h2 style="color:blue;">
+        <?php
+        echo 'Nombre:' . $empleado->getNombre() . '- DNI:' . $empleado->getDni() . '- Departamento:' . $empleado->getDepartamento()->getNombre();
+        ?>
+    </h2>
+    <hr/>
+    <div>
+        <label for="para">Para</label><br/>
+        <select id="para" name="para">
+            <?php
+            $departamentos = $bd->obtenerDepartamentos();
+            foreach($departamentos as $d){
+                echo '<option value="' . $d->getIdDep() . '">' . $d->getNombre() . '</option>';
+            }
+            ?>
+        </select>
+    </div>
+    <div>
+        <label for="asunto">Asunto</label><br/>
+        <input type="text" id="asunto" name="asunto" size="50" maxlength="50"/>
+    </div>
+    <div>
+        <label for="mensaje">Mensaje</label><br/>
+        <input type="text" id="mensaje" name="mensaje" size="100" maxlength="100"/>
+    </div>
+    <br/>
+    <button type="submit" name="Enviar">Enviar</button>
+    <button type="submit" name="cerrar">Cerrar Sesión</button>
+</form>
+El formulario permite al empleado enviar un mensaje a un departamento.
+Los campos que deben ser completados son asunto y mensaje.
+Se selecciona el departamento al que se desea enviar el mensaje de un <select> que obtiene los departamentos desde la base de datos.
+Botón "Enviar": Envía el mensaje.
+Botón "Cerrar Sesión": Permite al empleado cerrar la sesión.
+6. Mostrar Mensajes Recibidos y Enviados
+php
+Copiar
+<h1 style="color:blue;">Bandeja de Entrada</h1>
+<table width="100%">
+    <tr>
+        <th align="left">Id</th>
+        <th align="left">De</th>
+        <th align="left">Para Departamento</th>
+        <th align="left">Fecha</th>
+        <th align="left">Asunto</th>
+        <th align="left">Mensaje</th>
+    </tr>
+    <?php
+    $mensajesRecibidos = $bd->obtenerMensajesRecidos($empleado);
+    foreach($mensajesRecibidos as $m){
+        echo '<tr>';
+        echo '<td align="left">' . $m->getIdMen() . '</td>';
+        echo '<td align="left">' . $m->getDeEmpleado()->getNombre() . '</td>';
+        echo '<td align="left">' . $m->getParaDepartamento()->getNombre() . '</td>';
+        echo '<td align="left">' . date('d/m/Y', strtotime($m->getFechaEnvio())) . '</td>';
+        echo '<td align="left">' . $m->getAsunto() . '</td>';
+        echo '<td align="left">' . $m->getMensaje() . '</td>';
+        echo '</tr>';
+    }
+    ?>
+</table>
+<h1 style="color:blue;">Bandeja de Salida</h1>
+<table width="100%">
+    <tr>
+        <th align="left">Id</th>
+        <th align="left">Para</th>
+        <th align="left">Fecha</th>
+        <th align="left">Asunto</th>
+        <th align="left">Mensaje</th>
+    </tr>
+    <?php
+    $mensajes = $bd->obtenerMensajes($empleado);
+    foreach($mensajes as $m){
+        echo '<tr>';
+        echo '<td align="left">' . $m->getIdMen() . '</td>';
+        echo '<td align="left">' . $m->getParaDepartamento()->getNombre() . '</td>';
+        echo '<td align="left">' . date('d/m/Y', strtotime($m->getFechaEnvio())) . '</td>';
+        echo '<td align="left">' . $m->getAsunto() . '</td>';
+        echo '<td align="left">' . $m->getMensaje() . '</td>';
+        echo '</tr>';
+    }
+    ?>
+</table>
+Bandeja de Entrada: Muestra los mensajes recibidos. Se obtiene y muestra la lista de mensajes utilizando obtenerMensajesRecidos.
+Bandeja de Salida: Muestra los mensajes enviados. Se obtiene y muestra la lista de mensajes utilizando obtenerMensajes.
+Resumen
+Este código proporciona una interfaz para que los empleados inicien sesión, envíen mensajes a otros departamentos, y vean tanto los mensajes recibidos como los enviados. Además, gestiona la sesión de usuario, redirigiendo al login si no hay sesión activa, y permite cerrar sesión.
+-----------------------------------------------------------------------------------------------------------------------
+mensajes.sql
+-----------------------------------------------------------------------------------------------------------------------
+Este código es un conjunto de instrucciones SQL para crear una base de datos y estructuras asociadas para un sistema de mensajería entre empleados de diferentes departamentos. A continuación, te explicaré cada parte en detalle:
+
+1. Eliminar y Crear Base de Datos
+sql
+Copiar
+drop database if exists mensajes;
+create database mensajes;
+use mensajes;
+drop database if exists mensajes: Elimina la base de datos llamada mensajes si ya existe. Esto es útil para evitar errores si la base de datos ya está presente.
+create database mensajes: Crea una nueva base de datos llamada mensajes.
+use mensajes: Selecciona la base de datos mensajes para trabajar con ella.
+2. Crear la Tabla departamento
+sql
+Copiar
+create table departamento(
+    idDep int primary key not null auto_increment,
+    nombre varchar(100) not null
+)engine innodb;
+idDep: Un campo de tipo entero que es la clave primaria (ID único) y se autoincrementa con cada nuevo registro.
+nombre: El nombre del departamento (como "RRHH", "Contabilidad", etc.), que es un campo de texto no nulo.
+engine innodb: Indica que la tabla usa el motor de almacenamiento InnoDB, que soporta claves foráneas y transacciones.
+3. Insertar Datos en la Tabla departamento
+sql
+Copiar
+insert into departamento values
+    (null, 'RRHH'),
+    (null, 'Contabilidad'),
+    (null, 'Ventas'),
+    (null, 'Compras'),
+    (null, 'Almacen');
+Inserta 5 departamentos diferentes en la tabla departamento. En este caso, el idDep se genera automáticamente debido al uso de auto_increment.
+4. Crear la Tabla empleado
+sql
+Copiar
+create table empleado(
+    idEmp int auto_increment  key,
+    dni varchar(9) not null unique,
+    ps blob not null,
+    nombreEmp varchar(100) not null,
+    fechaNac date not null,
+    departamento  int not null,
+    cambiarPs boolean default true,
+    foreign key (departamento) references departamento(idDep) on update cascade on delete restrict
+) engine innodb;
+idEmp: La clave primaria de la tabla empleado, que es un campo entero que se autoincrementa.
+dni: El DNI del empleado, un campo de texto único de 9 caracteres.
+ps: Contraseña cifrada del empleado, almacenada como un campo BLOB (Binario Large Object).
+nombreEmp: Nombre del empleado, un campo de texto de 100 caracteres.
+fechaNac: Fecha de nacimiento del empleado.
+departamento: Este campo es una clave foránea que hace referencia a la tabla departamento, indicando a qué departamento pertenece el empleado.
+cambiarPs: Un campo booleano que indica si el empleado debe cambiar su contraseña en el futuro (por defecto es true).
+foreign key (departamento): Establece una relación de clave foránea con la tabla departamento. Si un departamento se actualiza, los cambios se reflejan en la tabla empleado (on update cascade). Si un departamento se elimina, no se permite la eliminación de los empleados que pertenecen a ese departamento (on delete restrict).
+5. Insertar Datos en la Tabla empleado
+sql
+Copiar
+insert into empleado(dni, ps, nombreEmp, fechaNac, departamento) values
+    ('1A', sha2('1A',0), 'Ana Díaz', '2000-01-01', 2),
+    ('2A', sha2('2A',0), 'Luisa Amor', '2000-02-01', 1),
+    ('3A', sha2('3A',0), 'Gema Contreas', '2000-03-01', 3),
+    ('4A', sha2('4A',0), 'Margarita Flores', '2000-04-01', 4),
+    ('5A', sha2('5A',0), 'Mónica Vaz', '2000-05-01', 2),
+    ('6A', sha2('6A',0), 'Pilar Sanz', '2000-06-01', 5),
+    ('7A', sha2('7A',0), 'Lucía Vilalr', '2000-07-01', 1);
+Los datos de los empleados son insertados en la tabla empleado.
+sha2('1A',0): La contraseña se almacena de manera segura utilizando la función sha2 con un valor de cifrado de 0 (sin sal). Cada contraseña es un valor cifrado.
+6. Crear la Tabla mensaje
+sql
+Copiar
+create table mensaje(
+    idMen int primary key auto_increment,
+    deEmpleado int not null,
+    paraDepartamento int not null,
+    asunto varchar(100),
+    fechaEnvio date not null,
+    mensaje varchar(500),
+    foreign key (deEmpleado) references empleado(idEmp) on update cascade on delete restrict,
+    foreign key (paraDepartamento) references departamento(idDep) on update cascade on delete restrict
+) engine innodb;
+idMen: Clave primaria que se autoincrementa, para identificar de manera única cada mensaje.
+deEmpleado: Campo que almacena el ID del empleado que envió el mensaje. Es una clave foránea que hace referencia a la tabla empleado.
+paraDepartamento: Campo que almacena el ID del departamento destinatario. Es una clave foránea que hace referencia a la tabla departamento.
+asunto: Asunto del mensaje.
+fechaEnvio: Fecha de envío del mensaje.
+mensaje: El contenido del mensaje.
+Las claves foráneas con on update cascade y on delete restrict aseguran que si un empleado o departamento cambia, los mensajes se actualicen o se restrinja la eliminación de registros relacionados.
+7. Crear la Tabla para
+sql
+Copiar
+create table para(
+    idMen int,
+    paraEmpleado int not null,
+    leido boolean not null default false,
+    primary key(idMen, paraEmpleado),
+    foreign key (idMen) references mensaje(idMen) on update cascade on delete restrict,
+    foreign key (paraEmpleado) references empleado(idEmp) on update cascade on delete restrict
+) engine innodb;
+idMen: El ID del mensaje (clave foránea de la tabla mensaje).
+paraEmpleado: El ID del empleado destinatario (clave foránea de la tabla empleado).
+leido: Un campo booleano que indica si el destinatario ha leído el mensaje (por defecto es false).
+primary key(idMen, paraEmpleado): La clave primaria está compuesta por ambos campos idMen y paraEmpleado, lo que garantiza que cada destinatario de un mensaje sea único.
+Las claves foráneas aseguran la integridad referencial entre los mensajes y los empleados.
+8. Crear la Función login
+sql
+Copiar
+delimiter //
+create function login(pUs int, pPs varchar(100))
+    returns int deterministic
+begin
+    declare vCambiar boolean;
+    select cambiarPs into vCambiar from empleado where idEmp = pUs and ps = sha2(pPs,0);
+    if vCambiar is null then return 0;
+    else return 1;
+    end if;
+end//
+login: Es una función que toma dos parámetros: el ID del usuario (pUs) y la contraseña (pPs).
+select cambiarPs into vCambiar: Se verifica si la contraseña proporcionada coincide con la registrada en la base de datos (cifrada con sha2).
+Si no hay coincidencia (es decir, el valor de vCambiar es null), la función devuelve 0, lo que indica que la autenticación ha fallado.
+Si la contraseña es correcta, devuelve 1, indicando que la autenticación fue exitosa.
+Resumen
+Este conjunto de instrucciones SQL crea una base de datos para un sistema de mensajería entre empleados y departamentos. Se crean tablas para los empleados, departamentos, mensajes y la relación entre mensajes y empleados. Además, se incluye una función login para la autenticación de los empleados mediante el uso de contraseñas cifradas.
+
+
+
+

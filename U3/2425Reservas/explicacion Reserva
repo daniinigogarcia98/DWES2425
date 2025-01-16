@@ -1,0 +1,761 @@
+index.php
+-----------------------------------------------------------------------------------------------------------------------
+Este código PHP y HTML implementa un sistema de reservas para un centro educativo llamado "IES Augustóbriga". A continuación te explico cada parte del código:
+
+1. Inclusion de archivos y funciones
+php
+Copiar
+require_once 'controlador.php';
+
+function seleccionado($id)
+{
+    if (isset($_POST['recurso']) and $_POST['recurso'] == $id) {
+        return 'selected="selected"';
+    }
+}
+require_once 'controlador.php'; incluye un archivo externo llamado controlador.php, donde probablemente se gestionen las conexiones a la base de datos y la lógica de negocio.
+La función seleccionado($id) es utilizada para establecer la opción seleccionada en un select HTML. Si el valor de $_POST['recurso'] coincide con el id pasado a la función, se añade el atributo selected="selected" al option.
+2. HTML y estructura del documento
+html
+Copiar
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reservas IES Augustóbriga</title>
+</head>
+<body>
+    <h1>Reservas IES Augustóbriga</h1>
+El documento está estructurado con etiquetas HTML estándar. El título del documento es "Reservas IES Augustóbriga".
+
+3. Formulario de Login
+php
+Copiar
+<?php if (!isset($_SESSION['usuario'])) { ?>
+    <section>
+        <h2>Login</h2>
+        <form action="" method="POST">
+            <label for="usuario">Usuario</label><br />
+            <input type="text" name="usuario" /><br />
+            <label for="ps">Contraseña</label><br />
+            <input type="password" name="ps"><br /><br />
+            <button type="submit" name="acceder">Acceder</button>
+        </form>
+    </section>
+<?php } ?>
+Si no está iniciada una sesión (!isset($_SESSION['usuario'])), se muestra un formulario de login donde el usuario puede ingresar su nombre de usuario y contraseña.
+Cuando el usuario envía el formulario, el método POST envía los datos al servidor para su validación.
+4. Manejo de mensajes
+php
+Copiar
+<section>
+    <?php if (isset($mensaje)) {
+        echo '<h3 style="color:red">' . $mensaje . '</h3>';
+    } ?>
+</section>
+Si la variable $mensaje está definida, se muestra un mensaje de error o información en color rojo.
+
+5. Información de usuario logueado
+php
+Copiar
+<?php if (isset($_SESSION['usuario'])) { ?>
+    <form method="post">
+        <section>
+            <table width="100%">
+                <tr>
+                    <td>
+                        <h3 style="color:blue">Id Rayuela</h3><?php echo $_SESSION['usuario']->getIdRayuela() ?>
+                    </td>
+                    <td>
+                        <h3 style="color:blue">Nombre</h3><?php echo $_SESSION['usuario']->getNombre() ?>
+                    </td>
+                    <td>
+                        <h3 style="color:blue">Número de Reservas</h3><?php echo $_SESSION['usuario']->getNumReservas() ?>
+                    </td>
+                    <td>
+                        <h3 style="color:blue">Color Reservas</h3>
+                        <input type="color" name="color" value="<?php echo (isset($_COOKIE['colorR']) ? $_COOKIE['colorR'] : '#FF0000') ?>" />
+                        <input type="submit" name="cambiarColor" value="cambiar" />
+                    </td>
+                    <td>
+                        <input type="submit" name="salir" value="Salir" />
+                    </td>
+                </tr>
+            </table>
+        </section>
+Si el usuario está logueado (isset($_SESSION['usuario'])), se muestra información relevante como su ID de Rayuela, su nombre, el número de reservas que tiene y un selector de color para cambiar el color de las reservas.
+El color seleccionado se guarda en una cookie y se utiliza para personalizar la visualización de las reservas.
+6. Selección de recurso y ver reservas
+php
+Copiar
+<section>
+    <h3  style="color:blue">Selecciona Recurso</h3>
+    <select name="recurso">
+        <?php
+        $recursos = $bd->obtenerRecursos();
+        foreach ($recursos as $r) {
+            echo '<option value="' . $r->getId() . '" ' . seleccionado($r->getId()) . '>' . $r->getNombre() . '</option>';
+        }
+        ?>
+    </select>
+    <input type="submit" name="verR" value="verReservas" />
+    <table width="50%">
+        <tr>
+            <td>Id</td>
+            <td>Usuario</td>
+            <td>Recurso</td>
+            <td>Fecha</td>
+            <td>Hora</td>
+        </tr>
+        <?php
+        if (!empty($_POST['recurso'])) {
+            $reservas = $bd->obtenerReservasActivas($_POST['recurso']);
+            foreach ($reservas as $r) {
+                if ($r->getUsuario()->getIdRayuela() == $_SESSION['usuario']->getIdRayuela()) {
+                    echo '<tr style="color:' . (isset($_COOKIE['colorR']) ? $_COOKIE['colorR'] : 'black') . '">';
+                } else {
+                    echo '<tr>';
+                }
+                echo '<td>' . $r->getId() . '</td>';
+                echo '<td>' . $r->getUsuario()->getNombre() . '</td>';
+                echo '<td>' . $r->getRecurso()->getNombre() . '</td>';
+                echo '<td>' . $r->getFecha() . '</td>';
+                echo '<td>' . $r->getHora() . '</td>';
+                echo '</tr>';
+            }
+        }
+        ?>
+    </table>
+</section>
+El usuario puede seleccionar un "recurso" (por ejemplo, una sala o equipo) de una lista desplegable. Después de seleccionar el recurso, se muestran las reservas activas para ese recurso.
+Se utiliza la función obtenerRecursos() para obtener todos los recursos disponibles.
+Si el usuario tiene reservas, estas se muestran en una tabla con la información de cada reserva.
+7. Formulario para crear o anular una reserva
+php
+Copiar
+<section>
+    <h3  style="color:blue">Crear/Anular Reserva</h3>
+    <label for="fecha">Fecha Reserva</label>
+    <input type="date" name="fecha" id="fecha" value="<?php echo date('Y-m-d') ?>" />
+    <label for="hora">Hora Reserva</label>
+    <select name="hora" id="hora">
+        <option value="1">Primera</option>
+        <option value="2">Segunda</option>
+        <option value="3">Tercera</option>
+        <option value="4">Cuarta</option>
+        <option value="5">Quinta</option>
+        <option value="6">Sexta</option>
+    </select>
+    <button type="submit" name="reservar">Reservar</button>
+    <button type="submit" name="anular">Anular</button>
+</section>
+Aquí, el usuario puede elegir una fecha y una hora para realizar una nueva reserva o anular una reserva existente. Los botones permiten realizar una de estas dos acciones.
+8. Cierre del formulario
+php
+Copiar
+</form>
+<?php } ?>
+</body>
+</html>
+Si el usuario está logueado, se cierra el formulario de interacción.
+Resumen
+Este código permite a los usuarios:
+
+Iniciar sesión.
+Ver y gestionar las reservas de recursos (por ejemplo, salas o equipos).
+Cambiar el color con el que se visualizan sus reservas.
+Realizar nuevas reservas o anular reservas existentes.
+El sistema está basado en formularios y el uso de sesiones para mantener al usuario logueado. Los recursos y las reservas se gestionan mediante funciones que interactúan con una base de datos, probablemente definida en controlador.php.
+--------------------------------------------------------------------------------------------------------------------
+controlador.php
+--------------------------------------------------------------------------------------------------------------------
+Este bloque de código PHP maneja las funcionalidades principales de un sistema de reservas, como el inicio de sesión, cierre de sesión, cambio de color de reserva, y la creación o anulación de reservas. A continuación te explico cómo funciona cada parte del código:
+
+1. Inicio de sesión y validación
+php
+Copiar
+if (isset($_POST['acceder'])) {
+    if (empty($_POST['usuario']) or empty($_POST['ps'])) {
+        $mensaje = 'Error, rellena usuario y contraseña';
+    } else {
+        $u = $bd->login($_POST['usuario'], $_POST['ps']);
+        if ($u == null) {
+            $mensaje = 'Error, datos incorrectos';
+        } else {
+            if (!$u->getActivo()) {
+                $mensaje = 'Error, datos incorrectos';
+            } else {
+                $_SESSION['usuario'] = $u;
+            }
+        }
+    }
+}
+Propósito: Este bloque verifica que el usuario haya enviado el formulario de login (mediante el botón "acceder"). Si el nombre de usuario o la contraseña están vacíos, se muestra un mensaje de error. Luego, se llama al método login de la clase Modelo para verificar las credenciales del usuario.
+Si las credenciales son incorrectas o el usuario está inactivo ($u->getActivo()), se muestra un mensaje de error.
+Si el inicio de sesión es exitoso y el usuario está activo, se guarda el objeto usuario en la sesión ($_SESSION['usuario']).
+2. Cerrar sesión
+php
+Copiar
+} elseif (isset($_POST['salir'])) {
+    session_destroy();
+    header('location:index.php');
+}
+Propósito: Si el usuario hace clic en el botón "Salir", se destruye la sesión con session_destroy() y se redirige al usuario a la página principal (index.php).
+3. Cambiar color de reservas
+php
+Copiar
+} elseif (isset($_POST['cambiarColor'])) {
+    setcookie('colorR', $_POST['color']);
+    header('location:index.php');
+}
+Propósito: Si el usuario hace clic en el botón "cambiarColor", se guarda el color seleccionado en una cookie llamada colorR. Posteriormente, se redirige al usuario a la página principal (index.php) para que se aplique el cambio de color en las reservas.
+4. Reservar un recurso
+php
+Copiar
+} elseif (isset($_POST['reservar'])) {
+    if (empty($_POST) or empty($_POST['fecha']) or empty($_POST['hora'])) {
+        $mensaje = 'Rellena todos los datos';
+    } else {
+        if ($bd->chequearReservar($_POST['recurso'], $_POST['fecha'], $_POST['hora'])) {
+            if ($bd->reservar($_POST['recurso'], $_SESSION['usuario']->getIdRayuela(), $_POST['fecha'], $_POST['hora'])) {
+                $mensaje = 'Reserva realizada';
+                $_SESSION['usuario']=$bd->obtenerUsuario($_SESSION['usuario']->getIdRayuela());
+            } else {
+                $mensaje = 'Error, no se ha realizado la reserva';
+            }
+        } else {
+            $mensaje = 'Error, recurso ya está asignado';
+        }
+    }
+}
+Propósito: Este bloque maneja la creación de una nueva reserva cuando el usuario hace clic en el botón "Reservar".
+Primero, verifica que los campos de fecha y hora no estén vacíos. Si están vacíos, muestra un mensaje de error.
+Luego, se llama al método chequearReservar de la clase Modelo para comprobar si el recurso está disponible en la fecha y hora seleccionadas.
+Si el recurso está disponible, se llama al método reservar para realizar la reserva. Si la reserva es exitosa, se muestra un mensaje de éxito y se actualiza la información del usuario en la sesión.
+Si el recurso ya está reservado, muestra un mensaje de error diciendo que el recurso ya está asignado.
+5. Anular una reserva
+php
+Copiar
+} elseif (isset($_POST['anular'])) {
+    if (empty($_POST) or empty($_POST['fecha']) or empty($_POST['hora'])) {
+        $mensaje = 'Rellena todos los datos';
+    } else {
+        if ($bd->anularReserva($_POST['recurso'], $_SESSION['usuario']->getIdRayuela(), $_POST['fecha'], $_POST['hora'])) {
+            $mensaje = 'Reserva anulada';
+            $_SESSION['usuario']=$bd->obtenerUsuario($_SESSION['usuario']->getIdRayuela());
+        } else {
+            $mensaje = 'Error, no se ha anulado la reserva';
+        }
+    }
+}
+Propósito: Este bloque maneja la anulación de una reserva cuando el usuario hace clic en el botón "Anular".
+Primero, verifica que los campos de fecha y hora no estén vacíos. Si están vacíos, muestra un mensaje de error.
+Luego, se llama al método anularReserva de la clase Modelo para intentar anular la reserva correspondiente. Si la anulación es exitosa, se muestra un mensaje de éxito y se actualiza la información del usuario en la sesión.
+Si no se puede anular la reserva (por algún error interno o porque no existe), muestra un mensaje de error.
+Resumen de funcionamiento
+Este código gestiona las acciones que un usuario puede realizar en un sistema de reservas:
+
+Inicio de sesión: Permite al usuario ingresar al sistema con su nombre de usuario y contraseña.
+Cerrar sesión: Permite al usuario salir del sistema y destruir su sesión.
+Cambio de color de reservas: Permite cambiar el color con el que se visualizan las reservas, almacenando el color en una cookie.
+Reservar: Permite al usuario realizar una nueva reserva para un recurso, validando si el recurso está disponible en la fecha y hora seleccionadas.
+Anular: Permite al usuario anular una reserva existente.
+En todos los casos, se utiliza la clase Modelo para interactuar con la base de datos (consultas y modificaciones) y gestionar la lógica de negocio.
+---------------------------------------------------------------------------------------------------------------------
+modelo.php
+---------------------------------------------------------------------------------------------------------------------
+Este código define la clase Modelo, que maneja la interacción con la base de datos en un sistema de reservas. Utiliza PDO (PHP Data Objects) para conectarse a una base de datos MySQL y ejecutar consultas. A continuación te explico cada una de las funciones de la clase:
+
+1. Propiedades de la clase Modelo
+php
+Copiar
+private string $url = 'mysql:host=localhost;port=3306;dbname=reservas';
+private string $us = 'root';
+private string $ps = 'root';
+private $conexion = null;
+$url: La cadena de conexión a la base de datos. En este caso, se conecta a una base de datos llamada reservas en el servidor local localhost en el puerto 3306.
+$us y $ps: El nombre de usuario y la contraseña para acceder a la base de datos. En este caso, son 'root'.
+$conexion: Es la propiedad donde se almacenará la conexión a la base de datos.
+2. Método Constructor __construct
+php
+Copiar
+function __construct()
+{
+    try {
+        $this->conexion = new PDO($this->url, $this->us, $this->ps);
+    } catch (PDOException $e) {
+        echo $e->getMessage();
+    }
+}
+Este constructor se ejecuta cuando se crea una nueva instancia de la clase Modelo.
+Intenta establecer una conexión con la base de datos utilizando PDO. Si la conexión falla, captura la excepción PDOException y muestra el mensaje de error.
+3. Métodos de la clase
+a. login($us, $ps)
+php
+Copiar
+function login($us, $ps)
+{
+    // Realiza una consulta a la base de datos para verificar las credenciales del usuario
+    $resultado = 0;
+    try {
+        $consulta = $this->conexion->prepare('SELECT * from usuarios where idRayuela=? and ps=sha2(?,512)');
+        $params = array($us, $ps);
+        if ($consulta->execute($params)) {
+            if ($fila = $consulta->fetch()) {
+                $resultado = new Usuarios($fila['idRayuela'], $fila['nombre'], $fila['activo'], $fila['numReservas']);
+            }
+        }
+    } catch (PDOException $e) {
+        echo $e->getMessage();
+    }
+    return $resultado;
+}
+Propósito: Verifica las credenciales del usuario (idRayuela y contraseña ps) comparándolas con las almacenadas en la base de datos.
+La contraseña se compara utilizando el hash sha2 de 512 bits.
+Si las credenciales son correctas, devuelve un objeto Usuarios con los datos del usuario. Si no es válido, devuelve 0.
+b. obtenerUsuario($us)
+php
+Copiar
+function obtenerUsuario($us)
+{
+    $resultado = 0;
+    try {
+        $consulta = $this->conexion->prepare('SELECT * from usuarios where idRayuela=?');
+        $params = array($us);
+        if ($consulta->execute($params)) {
+            if ($fila = $consulta->fetch()) {
+                $resultado = new Usuarios($fila['idRayuela'], $fila['nombre'], $fila['activo'], $fila['numReservas']);
+            }
+        }
+    } catch (PDOException $e) {
+        echo $e->getMessage();
+    }
+    return $resultado;
+}
+Propósito: Recupera la información de un usuario dado su idRayuela y devuelve un objeto Usuarios con esa información.
+c. cambiarPS($id, $ps)
+php
+Copiar
+function cambiarPS($id, $ps)
+{
+    $resultado = false;
+    try {
+        $consulta = $this->conexion->prepare('UPDATE usuarios set ps=? and cambiar=false');
+        $params = array($ps);
+        if ($consulta->execute($params)) {
+            $resultado = true;
+        }
+    } catch (PDOException $e) {
+        echo $e->getMessage();
+    }
+    return $resultado;
+}
+Propósito: Cambia la contraseña de un usuario (aunque hay un error en la consulta SQL, ya que se debe hacer WHERE idRayuela=? para que se actualice correctamente).
+Si se actualiza correctamente, devuelve true; de lo contrario, devuelve false.
+d. obtenerRecursos()
+php
+Copiar
+function obtenerRecursos()
+{
+    $resultado = array();
+    try {
+        $consulta = $this->conexion->prepare('SELECT * from recursos');
+        if ($consulta->execute()) {
+            while ($fila = $consulta->fetch()) {
+                $resultado[] = new Recursos($fila['id'], $fila['nombre'], $fila['tipo'], $fila['descripcion']);
+            }
+        }
+    } catch (PDOException $e) {
+        echo $e->getMessage();
+    }
+    return $resultado;
+}
+Propósito: Recupera todos los recursos disponibles (por ejemplo, salas o equipos) de la base de datos y devuelve un arreglo de objetos Recursos.
+e. obtenerReservasActivas($idR)
+php
+Copiar
+function obtenerReservasActivas($idR)
+{
+    $resultado = array();
+    try {
+        $consulta = $this->conexion->prepare('SELECT * from reservas r 
+                                                inner join usuarios u on r.usuario = u.idRayuela
+                                                inner join recursos re on re.id=r.recurso and anulada = false 
+                                                where recurso = ? 
+                                                order by r.fecha desc');
+        $params = array($idR);
+        if ($consulta->execute($params)) {
+            while ($fila = $consulta->fetch()) {
+                $resultado[] = new Reservas(
+                    $fila['0'],
+                    new Usuarios($fila['idRayuela'], $fila['7'], $fila['activo'], $fila['numReservas']),
+                    new Recursos($fila['recurso'], $fila['12'], $fila['tipo'], $fila['descripcion']),
+                    date('d/m/Y',strtotime($fila['fecha'])),
+                    $fila['hora']
+                );
+            }
+        }
+    } catch (PDOException $e) {
+        echo $e->getMessage();
+    }
+    return $resultado;
+}
+Propósito: Recupera todas las reservas activas (no anuladas) de un recurso específico (idR) y las devuelve en un arreglo de objetos Reservas.
+f. chequearReservar($recurso, $fecha, $hora)
+php
+Copiar
+function chequearReservar($recurso, $fecha, $hora)
+{
+    $resultado = false;
+    try {
+        $consulta = $this->conexion->prepare('SELECT disponibilidad(?,?,?)');
+        $params = array($recurso, $fecha, $hora);
+        if ($consulta->execute($params)) {
+            if ($fila = $consulta->fetch() and $fila[0]) {
+                $resultado = true;
+            }
+        }
+    } catch (PDOException $e) {
+        echo $e->getMessage();
+    }
+    return $resultado;
+}
+Propósito: Comprueba si un recurso está disponible en una fecha y hora específicas, utilizando una función de la base de datos llamada disponibilidad. Si está disponible, devuelve true; de lo contrario, false.
+g. reservar($recurso, $usuario, $fecha, $hora)
+php
+Copiar
+function reservar($recurso, $usuario, $fecha, $hora)
+{
+    $resultado = false;
+    try {
+        $this->conexion->beginTransaction();
+        // Insert reserva
+        $consulta = $this->conexion->prepare('INSERT into reservas values (null,?,?,?,?,false)');
+        $params = array($usuario, $recurso, $fecha, $hora);
+        if ($consulta->execute($params)) {
+            if ($consulta->rowCount() == 1) {
+                // Update usuario
+                $consulta = $this->conexion->prepare('UPDATE usuarios set numReservas=numReservas+1 where idRayuela = ?');
+                $params = array($usuario);
+                if ($consulta->execute($params) and $consulta->rowCount() == 1) {
+                    $this->conexion->commit();
+                    $resultado = true;
+                } else {
+                    $this->conexion->rollBack();
+                }
+            }
+        }
+    } catch (PDOException $e) {
+        $this->conexion->rollBack();
+        echo $e->getMessage();
+    } catch (\Throwable $th) {
+        echo $th->getMessage();
+    }
+    return $resultado;
+}
+Propósito: Realiza una reserva de un recurso. Inicia una transacción, inserta la reserva en la base de datos y actualiza el número de reservas del usuario. Si alguna parte del proceso falla, se deshace (rollback) la transacción.
+h. anularReserva($recurso, $usuario, $fecha, $hora)
+php
+Copiar
+function anularReserva($recurso, $usuario, $fecha, $hora)
+{
+    $resultado = false;
+    try {
+        $this->conexion->beginTransaction();
+        // Anula reserva
+        $consulta = $this->conexion->prepare('UPDATE reservas set anulada = true where usuario=? and recurso=? and fecha=? and hora=? and anulada=false');
+        $params = array($usuario, $recurso, $fecha, $hora);
+        if ($consulta->execute($params)) {
+            if ($consulta->rowCount() == 1) {
+                // Update usuario
+                $consulta = $this->conexion->prepare('UPDATE usuarios set numReservas=numReservas-1 where idRayuela = ?');
+                $params = array($usuario);
+                if ($consulta->execute($params) and $consulta->rowCount() == 1) {
+                    $this->conexion->commit();
+                    $resultado = true;
+                } else {
+                    $this->conexion->rollBack();
+                }
+            }
+        }
+    } catch (PDOException $e) {
+        $this->conexion->rollBack();
+        echo $e->getMessage();
+    } catch (\Throwable $th) {
+        echo $th->getMessage();
+    }
+    return $resultado;
+}
+Propósito: Anula una reserva, marcando la reserva como anulada en la base de datos. También decrementa el contador de reservas del usuario. Si todo el proceso se completa correctamente, se hace un commit de la transacción.
+Resumen
+La clase Modelo gestiona las interacciones con la base de datos para un sistema de reservas, incluyendo operaciones como:
+
+Autenticación de usuarios (login).
+Obtención de información de usuarios y recursos (obtenerUsuario, obtenerRecursos).
+Creación y cancelación de reservas (reservar, anularReserva).
+Comprobación de disponibilidad (chequearReservar).
+Cada función está diseñada para manejar las operaciones correspondientes de manera segura y eficiente, utilizando transacciones para garantizar la consistencia de los datos.
+---------------------------------------------------------------------------------------------------------------------
+recursos.php
+---------------------------------------------------------------------------------------------------------------------
+Este es un código en PHP que define una clase llamada Recursos. A continuación te explico cada parte del código:
+
+1. Definición de la clase Recursos:
+php
+Copiar
+class Recursos {
+    private $id;
+    private $nombre;
+    private $tipo;
+    private $descripcion;
+La clase Recursos tiene cuatro propiedades privadas: $id, $nombre, $tipo, y $descripcion.
+Estas propiedades se inicializan con valores predeterminados como null (ya que en el constructor se asignan valores).
+2. El constructor de la clase:
+php
+Copiar
+public function __construct($id = null, $nombre = null, $tipo = null, $descripcion = null) {
+    $this->id = $id;
+    $this->nombre = $nombre;
+    $this->tipo = $tipo;
+    $this->descripcion = $descripcion;
+}
+El constructor se utiliza para crear un objeto de la clase Recursos.
+Recibe cuatro parámetros opcionales: $id, $nombre, $tipo, y $descripcion, que, si no se proporcionan al momento de crear un objeto, se inicializan con null.
+Luego, asigna los valores de estos parámetros a las propiedades del objeto ($this->id, $this->nombre, etc.).
+3. Métodos Setters:
+php
+Copiar
+public function setId($id) {
+    $this->id = $id;
+}
+
+public function setNombre($nombre) {
+    $this->nombre = $nombre;
+}
+
+public function setTipo($tipo) {
+    $this->tipo = $tipo;
+}
+
+public function setDescripcion($descripcion) {
+    $this->descripcion = $descripcion;
+}
+Los setters permiten modificar el valor de las propiedades privadas de la clase.
+Cada uno de estos métodos recibe un valor y lo asigna a la propiedad correspondiente del objeto.
+4. Métodos Getters:
+php
+Copiar
+public function getId() {
+    return $this->id;
+}
+
+public function getNombre() {
+    return $this->nombre;
+}
+
+public function getTipo() {
+    return $this->tipo;
+}
+
+public function getDescripcion() {
+    return $this->descripcion;
+}
+Los getters permiten acceder al valor de las propiedades privadas de la clase desde fuera del objeto.
+Cada uno de estos métodos retorna el valor actual de la propiedad correspondiente.
+Resumen:
+La clase Recursos está diseñada para representar recursos con cuatro atributos: id, nombre, tipo, y descripcion. Los valores de estos atributos se pueden establecer y obtener a través de métodos especiales llamados setters y getters. El constructor permite inicializar estos atributos cuando se crea un nuevo objeto, pero también pueden ser modificados posteriormente usando los setters.
+--------------------------------------------------------------------------------------------------------------------
+reservas.php
+--------------------------------------------------------------------------------------------------------------------
+Este código en PHP define una clase llamada Reservas, que está diseñada para manejar información relacionada con las reservas de recursos. Te explico cada parte del código:
+
+1. Definición de la clase Reservas:
+php
+Copiar
+class Reservas {
+    private $id;
+    private $usuario;
+    private $recurso;
+    private $fecha;
+    private $hora;
+    private $anulada;
+La clase Reservas tiene seis propiedades privadas: $id, $usuario, $recurso, $fecha, $hora, y $anulada.
+Estas propiedades representan los detalles de una reserva:
+$id: el identificador de la reserva.
+$usuario: la persona que realiza la reserva.
+$recurso: el recurso que se va a reservar.
+$fecha: la fecha de la reserva.
+$hora: la hora de la reserva.
+$anulada: un valor booleano que indica si la reserva ha sido anulada.
+2. El constructor de la clase:
+php
+Copiar
+public function __construct($id = null, $usuario = null, $recurso = null, $fecha = null, $hora = null, $anulada = false) {
+    $this->id = $id;
+    $this->usuario = $usuario;
+    $this->recurso = $recurso;
+    $this->fecha = $fecha;
+    $this->hora = $hora;
+    $this->anulada = $anulada;
+}
+El constructor se utiliza para inicializar un objeto de la clase Reservas.
+Recibe seis parámetros opcionales:
+$id, $usuario, $recurso, $fecha, $hora y $anulada.
+Si no se proporciona un valor para alguno de estos parámetros, se asigna un valor predeterminado (null para los campos de datos, y false para $anulada).
+El constructor asigna los valores de los parámetros a las propiedades correspondientes de la clase.
+3. Métodos Setters:
+php
+Copiar
+public function setId($id) {
+    $this->id = $id;
+}
+
+public function setUsuario($usuario) {
+    $this->usuario = $usuario;
+}
+
+public function setRecurso($recurso) {
+    $this->recurso = $recurso;
+}
+
+public function setFecha($fecha) {
+    $this->fecha = $fecha;
+}
+
+public function setHora($hora) {
+    $this->hora = $hora;
+}
+
+public function setAnulada($anulada) {
+    $this->anulada = $anulada;
+}
+Los setters son métodos que permiten modificar las propiedades privadas de la clase desde fuera de la clase.
+Cada método recibe un valor y lo asigna a la propiedad correspondiente:
+setId establece el valor de $id.
+setUsuario establece el valor de $usuario.
+setRecurso establece el valor de $recurso.
+setFecha establece el valor de $fecha.
+setHora establece el valor de $hora.
+setAnulada establece el valor de $anulada.
+4. Métodos Getters:
+php
+Copiar
+public function getId() {
+    return $this->id;
+}
+
+public function getUsuario() {
+    return $this->usuario;
+}
+
+public function getRecurso() {
+    return $this->recurso;
+}
+
+public function getFecha() {
+    return $this->fecha;
+}
+
+public function getHora() {
+    return $this->hora;
+}
+
+public function getAnulada() {
+    return $this->anulada;
+}
+Los getters son métodos que permiten acceder a los valores de las propiedades privadas de la clase desde fuera de la clase.
+Cada método devuelve el valor actual de la propiedad correspondiente:
+getId retorna el valor de $id.
+getUsuario retorna el valor de $usuario.
+getRecurso retorna el valor de $recurso.
+getFecha retorna el valor de $fecha.
+getHora retorna el valor de $hora.
+getAnulada retorna el valor de $anulada.
+Resumen:
+La clase Reservas está diseñada para gestionar reservas de recursos, con propiedades como el identificador de la reserva, el usuario, el recurso, la fecha, la hora y si la reserva ha sido anulada. Los métodos setters permiten modificar los valores de estas propiedades, y los métodos getters permiten obtener los valores actuales de las mismas. El constructor se utiliza para crear un objeto con valores iniciales, pero también se pueden cambiar posteriormente usando los métodos setters.
+--------------------------------------------------------------------------------------------------------------------
+usuarios.php
+--------------------------------------------------------------------------------------------------------------------
+Este código en PHP define una clase llamada Usuarios que está diseñada para representar a un usuario dentro de un sistema de reservas, por ejemplo. A continuación te explico en detalle cada parte del código:
+
+1. Definición de la clase Usuarios:
+php
+Copiar
+class Usuarios {
+    private $idRayuela;
+    private $nombre;
+    private $activo;
+    private $numReservas;
+La clase Usuarios tiene cuatro propiedades privadas:
+$idRayuela: un identificador único para el usuario, probablemente utilizado en un sistema llamado "Rayuela".
+$nombre: el nombre del usuario.
+$activo: un valor booleano que indica si el usuario está activo en el sistema.
+$numReservas: el número de reservas que el usuario ha realizado.
+2. El constructor de la clase:
+php
+Copiar
+public function __construct($idRayuela = null, $nombre = null, $activo = true, $numReservas = 0) {
+    $this->idRayuela = $idRayuela;
+    $this->nombre = $nombre;
+    $this->activo = $activo;
+    $this->numReservas = $numReservas;
+}
+El constructor de la clase Usuarios inicializa los valores de las propiedades cuando se crea un objeto de la clase.
+Recibe cuatro parámetros opcionales:
+$idRayuela: el identificador del usuario.
+$nombre: el nombre del usuario.
+$activo: un valor booleano que indica si el usuario está activo (por defecto es true).
+$numReservas: el número de reservas que el usuario ha realizado (por defecto es 0).
+Si no se pasan valores al crear el objeto, se asignan los valores predeterminados.
+3. Métodos Setters:
+php
+Copiar
+public function setIdRayuela($idRayuela) {
+    $this->idRayuela = $idRayuela;
+}
+
+public function setNombre($nombre) {
+    $this->nombre = $nombre;
+}
+
+public function setNumReservas($numReservas) {
+    $this->numReservas = $numReservas;
+}
+Los setters permiten modificar el valor de las propiedades privadas desde fuera de la clase:
+setIdRayuela($idRayuela) asigna un nuevo valor al identificador del usuario.
+setNombre($nombre) asigna un nuevo nombre al usuario.
+setNumReservas($numReservas) asigna un nuevo valor al número de reservas del usuario.
+4. Métodos Getters:
+php
+Copiar
+public function getIdRayuela() {
+    return $this->idRayuela;
+}
+
+public function getNombre() {
+    return $this->nombre;
+}
+
+public function getNumReservas() {
+    return $this->numReservas;
+}
+Los getters permiten acceder al valor de las propiedades privadas desde fuera de la clase:
+getIdRayuela() devuelve el identificador del usuario.
+getNombre() devuelve el nombre del usuario.
+getNumReservas() devuelve el número de reservas realizadas por el usuario.
+5. Métodos adicionales para la propiedad activo:
+php
+Copiar
+public function getActivo() {
+    return $this->activo;
+}
+
+public function setActivo($activo) {
+    $this->activo = $activo;
+    return $this;
+}
+La propiedad $activo tiene un par de métodos adicionales.
+getActivo(): devuelve si el usuario está activo (true) o no (false).
+setActivo($activo): permite modificar el valor de la propiedad $activo. Este método también devuelve la instancia del objeto ($this), lo que permite encadenar múltiples llamadas a métodos (por ejemplo, se podría hacer algo como: $usuario->setActivo(false)->setNombre('Juan')).
+Resumen:
+La clase Usuarios se utiliza para gestionar información sobre los usuarios en el sistema. Tiene propiedades como el identificador del usuario, el nombre, el estado de actividad y el número de reservas realizadas. Los métodos setters permiten modificar estos valores, mientras que los métodos getters permiten acceder a ellos. El constructor inicializa las propiedades al crear un nuevo objeto, y se ha agregado funcionalidad especial para la propiedad activo, permitiendo modificarla y obtener su valor de manera más controlada.

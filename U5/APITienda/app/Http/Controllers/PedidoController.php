@@ -3,10 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pedido;
+use App\Models\Producto;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+
 class PedidoController extends Controller
 {
     /**
@@ -16,10 +20,11 @@ class PedidoController extends Controller
     {
 
         try {
-            ////Devolver pedidos de usuario logueado
-            return Pedido::where('user_id', Auth::user()->id)->get();
+            //Devolver pedidos de usuario logueado
+            //return User::find(Auth::user()->id)->pedidos();
+            return Pedido::where('user_id',Auth::user()->id)->get();
         } catch (\Throwable $th) {
-            return response()->json(['error' => $th->getMessage()], 500);
+            return response()->json('Error:'.$th->getMessage(),500);
         }
     }
 
@@ -28,7 +33,37 @@ class PedidoController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        //Validaciones
+        $request->validate([
+            'producto' => 'required',
+            'cantidad' => 'required',
+        ]);
+        //Crear pedido
+        try {
+            DB::transaction(function () use ($request) {
+                //Obtener Producto y Validar Stock
+                $p=Producto::find($request->producto);
+                if($p!=null && $p->stock>=$request->cantidad){
+
+                    $pedido=new Pedido();
+                    $pedido->producto_id=$p->id;
+                    $pedido->cantidad=$request->cantidad;
+                    $pedido->precioU=$p->precio;
+                    $pedido->user_id=Auth::user()->id;
+                    //crear pedido
+                    if($pedido->save()){
+                        //Actualizar stock del producto
+                        $p->stock-=$pedido->cantidad;
+                        $p->save();
+                    }
+                }
+                else{
+                    throw new Exception('Producto no encontrado o sin stock');
+                }
+            });
+        } catch (\Throwable $th) {
+            return response()->json('Error:'.$th->getMessage(),500);
+        }
     }
 
     /**

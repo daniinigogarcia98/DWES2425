@@ -54,13 +54,18 @@ class PedidoController extends Controller
                     if($pedido->save()){
                         //Actualizar stock del producto
                         $p->stock-=$pedido->cantidad;
-                        $p->save();
+                        if ($p->save()){
+                            return response()->json('Pedido creado ',200);
+                        }
+
                     }
                 }
                 else{
                     throw new Exception('Producto no encontrado o sin stock');
                 }
             });
+            //Devolver pedido creado y su nombre
+            return response()->json('Pedido creado ',200);
         } catch (\Throwable $th) {
             return response()->json('Error:'.$th->getMessage(),500);
         }

@@ -1,1 +1,8 @@
-<p>hola</p>
+<p>cerrar sesion</p>
+<button type="button" onclick="logout()">Cerrar Sesion</button>
+<script>
+function logout(){
+  localStorage.clear();
+  window.location.href="login.html";
+}
+</script>

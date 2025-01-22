@@ -23,7 +23,6 @@
     <script src="js/bootstrap.min.js"></script>
     <script src="axios/dist/axios.min.js"></script>
     <script>
-        function salir(){
             //Recuperar token
             const token = localStorage.getItem('token');
             if (token==null){
@@ -35,7 +34,22 @@
                 document.getElementById('nombreUS').textContent=`${nombreUS}`;
             }
 
-        }
+            //Todas las Peticiones van a ir con token de autenticacion
+            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+            function salir(){
+                const url = 'http://localhost/DWES2425/U5/APITienda/public/api/logout';
+                axios.post(url)
+                .then(response =>{
+                    alert('Sesion cerrada');
+                    window.location.href="login.html";
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('us');
+                })
+                .catch(error =>{
+                    alert('Error:no se ha podido cerrar la sesion');
+                });
+            }
     </script>
   </body>
 </html>

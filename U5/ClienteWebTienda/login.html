@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
   <head>
@@ -12,7 +13,6 @@
     <script src="js/popper.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script src="axios/dist/axios.min.js"></script>
-    <script src="js/tienda.js"></script>
   </head>
   <body>
     <div class="container">
@@ -27,7 +27,31 @@
         </div>
         <button type="button" class="btn btn-primary" onclick="login()">Enviar</button>
         <p>No tienes cuenta? <a href="registro.html">Registrate</a></p>
-        
+        <script>
+            function login(){
+  const url = 'http://localhost/DWES2425/U5/APITienda/public/api/login';
+  const datos = {
+    email: document.getElementById('email').value,
+    ps: document.getElementById('ps').value
+  }
+  axios.post(url, datos)
+  .then(response =>{
+    const token = response.data.token;
+    const us = response.data.nombreUS;
+    localStorage.setItem('token',token);
+    localStorage.setItem('us',us);
+    window.location.href="tienda.html";
+    if (response.data.status==200){
+        alert('Login Correcto');
+    }
+  })
+  .catch(error =>{
+    if (error.response.status==401){
+      alert('Login incorrecto');
+    }
+    });
+}
+        </script>
       </form>
     </div>
   </body>

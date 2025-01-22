@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Registro</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+  
+    <script src="js/bootstrap.min.js"></script>
+    <script src="axios/dist/axios.min.js"></script>
+  </head>
+  <body>
+    <form action=""  class="mt-5">
+        <div class="form-group">
+            <label for="nombre">Nombre</label>
+            <input type="text" id="nombre" name="nombre" class="form-control" placeholder="Nombre">
+        </div>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" class="form-control" placeholder="Email@email.com">
+        </div>
+        <div class="form-group">
+            <label for="ps">Contraseña</label>
+            <input type="password" id="ps" name="ps" class="form-control" placeholder="******">
+        </div>
+        <div class="form-group">
+            <label for="ps2">Repetir Contraseña</label>
+            <input type="password" id="ps2" name="ps2" class="form-control" placeholder="******">
+        </div>
+        <button type="button" class="btn btn-primary" onclick="registro()">Enviar</button>
+    </form>
+    <script>
+  function registro(){
+    const url = 'http://localhost/DWES2425/U5/APITienda/public/api/registro';
+    const datos = {
+        nombre: document.getElementById('nombre').value,
+        email: document.getElementById('email').value,
+        ps: document.getElementById('ps').value,
+        ps2: document.getElementById('ps2').value
+    }
+    axios.post(url, datos)
+    .then(response =>{
+            alert('Usuario registrado');
+            window.location.href="login.html";
+        
+    })
+    .catch(error =>{
+       alert('Error:'+error.response.status + ':'+error.response.message);
+    });
+    };
+    </script>
+    <a href="login.html">Volver al inicio</a>
+  </body>
+</html>

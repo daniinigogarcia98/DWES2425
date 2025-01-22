@@ -1,8 +1,39 @@
-<p>cerrar sesion</p>
-<button type="button" onclick="logout()">Cerrar Sesion</button>
-<script>
-function logout(){
-  localStorage.clear();
-  window.location.href="login.html";
-}
-</script>
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Title</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+  </head>
+  <body>
+      
+    <h3 id="nombreUS"></h3>
+    <button type="button" class="btn btn-primary" onclick="salir()">Salir</button>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="js/jquery-3.6.0.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="axios/dist/axios.min.js"></script>
+    <script>
+        function salir(){
+            //Recuperar token
+            const token = localStorage.getItem('token');
+            if (token==null){
+                window.location.href="login.html";
+
+            }
+            else{
+                const nombreUS = localStorage.getItem('us');
+                document.getElementById('nombreUS').innerHTML='<h3 id="nombreUS"></h3>'
+                document.getElementById('nombreUS').textContent=`${nombreUS}`;
+            }
+            
+        }
+    </script>
+  </body>
+</html>

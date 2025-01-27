@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\PedidoResource;
 use App\Models\Pedido;
 use App\Models\Producto;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class PedidoController extends Controller
+class PedidoController
 {
     /**
      * Display a listing of the resource.
@@ -22,7 +22,8 @@ class PedidoController extends Controller
         try {
             //Devolver pedidos de usuario logueado
             //return User::find(Auth::user()->id)->pedidos();
-            return Pedido::where('user_id',Auth::user()->id)->get();
+            $pedidos= Pedido::where('user_id',Auth::user()->id)->get();
+            return PedidoResource::collection($pedidos);
         } catch (\Throwable $th) {
             return response()->json('Error:'.$th->getMessage(),500);
         }
@@ -33,40 +34,38 @@ class PedidoController extends Controller
      */
     public function store(Request $request)
     {
-        //Validaciones
+        //VAlidaciones
         $request->validate([
-            'producto' => 'required',
-            'cantidad' => 'required',
+            'producto'=>'required',
+            'cantidad'=>'required'
         ]);
         //Crear pedido
         try {
-            DB::transaction(function () use ($request) {
-                //Obtener Producto y Validar Stock
-                $p=Producto::find($request->producto);
-                if($p!=null && $p->stock>=$request->cantidad){
-
-                    $pedido=new Pedido();
+            DB::transaction(function() use ($request){
+                //Obtener el producto y validar stock
+                $p = Producto::find($request->producto);
+                if($p!=null and $p->stock>=$request->cantidad){
+                    $pedido = new Pedido();
                     $pedido->producto_id=$p->id;
-                    $pedido->cantidad=$request->cantidad;
-                    $pedido->precioU=$p->precio;
+                    $pedido->cantidad = $request->cantidad;
+                    $pedido->precioU = $p->precio;
                     $pedido->user_id=Auth::user()->id;
-                    //crear pedido
+                    //Crear pedido
                     if($pedido->save()){
                         //Actualizar stock del producto
                         $p->stock-=$pedido->cantidad;
-                        if ($p->save()){
-                            return response()->json('Pedido creado ',200);
+                        if($p->save()){
+                           // return response()->json($pedido,200);;
                         }
-
                     }
                 }
                 else{
-                    throw new Exception('Producto no encontrado o sin stock');
+                    throw new Exception('El producto no existe o no hay stock');
                 }
             });
-            //Devolver pedido creado y su nombre
-            return response()->json('Pedido creado ',200);
+            return response()->json('Pedido creado',200);
         } catch (\Throwable $th) {
+            //throw $th;
             return response()->json('Error:'.$th->getMessage(),500);
         }
     }

@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('reservas', function (Blueprint $table) {
             $table->id();
             $table->string('empleado');
-            $table->timestamp('fechaI');
-            $table->timestamp('fechaF');
+            $table->timestamp('fechaI')->nullable();
+            $table->timestamp('fechaF')->nullable();
             $table->foreignId('recurso')->constrained('recursos');
             $table->timestamps();
         });

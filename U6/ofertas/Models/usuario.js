@@ -29,7 +29,7 @@ const Usuario = bd.define('Usuarios',{
     },
     avatar:{
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: true
     },
 },
 {

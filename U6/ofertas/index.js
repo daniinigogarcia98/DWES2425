@@ -12,7 +12,7 @@ const { bd, Usuario,Oferta } = require("./Models");
 
 //Conectar con la bd
 bd.sync({
-  force: true, // ¡¡¡ IMPORTANTE !!!  cambiar a false cuando el esquema del db sea definitivo¡¡¡
+  force: false, // ¡¡¡ IMPORTANTE !!!  cambiar a false cuando el esquema del db sea definitivo¡¡¡
 })
   .then(() => {
     console.log("Conexión con la bd establecida");

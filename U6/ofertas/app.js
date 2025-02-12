@@ -3,6 +3,8 @@ const express = require('express');
 
 //Incializar express
 const app = express();
+//añadir middleware
+app.use(express.json());
 
 //Importar rutas
 const rutaU = require('./routes/usuarioR');

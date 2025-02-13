@@ -1,10 +1,35 @@
 // Importar el modelo de usuario
+const e = require('express');
 const usuario = require('../Models/usuario');
 // Importar bcrypt
 const cifrar = require('bcrypt');
 
-function login(req, res) {
-    res.status(200).send('Página de login');
+async function login(req, res) {
+    try {
+        // Recuperar los datos
+        const { email, password } = req.body;
+        if (!email || !password) {
+            throw 'Falta email o ps';
+        }
+        //Recuperar el us por email
+        const us = await usuario.findOne({ where: { email } });
+        if (!us) {
+            throw 'Usuario incorrecto';
+        }
+        else {
+            // Comprobar con bcrypt si la contraseña es correcta
+            if (await cifrar.compare(password, us.password)) {
+                res.status(200).send({"email": us.email, "nombre": us.nombre, "perfil": us.perfil});
+               //res.status(200).send(us);
+            }
+            else {
+                throw 'usuario incorrecto';
+            }
+        }
+    }
+    catch (error) {
+        res.status(500).send({textoError: error});
+    }
 }
 
 async function registro(req, res) {

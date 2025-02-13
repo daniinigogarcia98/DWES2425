@@ -23,8 +23,25 @@ async function show(req,res){
         res.status(500).send({textoError: error});
     }
 }
-function store(req,res){
-    res.status(200).send('Crear oferta');
+async function store(req,res){
+   try {
+    const {titulo,descripcion,usuario}=req.body;
+    if (!titulo || !descripcion || !usuario) {
+        throw 'Faltan datos de la oferta';
+    }
+    //Comprobar que el usuario exista
+    const us = await Usuario.findOne({where:{id:usuario,perfil:'tienda'}});
+    if (!us) {
+        throw 'Tienda no existe';
+    }
+    else {
+        const o = await Oferta.create({titulo,descripcion,usuario_id:usuario});
+        res.json(o);
+    }
+
+   } catch (error) {
+    res.status(500).send({textoError: error});
+   }
 }
 function update(req,res){
     res.status(200).send('Modificar oferta');

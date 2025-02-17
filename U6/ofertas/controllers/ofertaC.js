@@ -70,15 +70,31 @@ async function update(req,res){
             }
         }
         else{
-            res.status(200).send({textoError:'No se ha modificado datos'});
+            res.status(200).send('No se ha modificado datos');
         }
     } catch (error) {
         res.status(500).send({textoError: error});
        }
    
 }
-function destroy(req,res){
-    res.status(200).send('Borrar oferta');
+ async function destroy(req,res){
+    try {
+        //Comprobar que la oferta exista
+        const o = await Oferta.findByPk(req.params.id);
+     
+        if (!o) {
+            throw 'oferta no existe';
+        }
+           //Chequear que el usuario que creo la oferta sea el que la borra
+        if (await o.destroy()){
+            res.status(200).send('Oferta borrada');
+        }
+        else{
+            throw 'Error al borrar la oferta';
+        }
+    } catch (error) {
+        res.status(500).send({textoError: error});
+    }
 }
 
 module.exports={

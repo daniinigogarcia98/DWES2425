@@ -43,8 +43,39 @@ async function store(req,res){
     res.status(500).send({textoError: error});
    }
 }
-function update(req,res){
-    res.status(200).send('Modificar oferta');
+async function update(req,res){
+    try {
+        const {titulo,descripcion}=req.body;
+        if (!titulo && !descripcion) {
+            throw 'Titulo o descripcion Son obligatorios';
+        }
+        //Comprobar que la oferta existe
+        const o = await Oferta.findByPk(req.params.id);
+        if (!o) {
+            throw 'No existe oferta';
+        }
+        //Comprobar si se ha modificado algo
+        if (titulo){
+            o.set('titulo',titulo);
+        }
+        if (descripcion){
+            o.set('descripcion',descripcion);
+        }
+        if(o.changed()){
+            if ( await o.save()){
+                res.status(200).send(o);
+            }
+            else{
+                throw 'Error al modificar la oferta';
+            }
+        }
+        else{
+            res.status(200).send({textoError:'No se ha modificado datos'});
+        }
+    } catch (error) {
+        res.status(500).send({textoError: error});
+       }
+   
 }
 function destroy(req,res){
     res.status(200).send('Borrar oferta');

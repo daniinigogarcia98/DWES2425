@@ -5,6 +5,10 @@ const usuario = require('../Models/usuario');
 const cifrar = require('bcrypt');
 //Importamos gestión del token
 const servicioJWT = require('../service/jwt');
+//Importar librerias que permiten trabajar con ficheros
+const fs = require('fs');
+const path = require('path');
+const { error } = require('console');
 
 async function login(req, res) {
     try {
@@ -66,8 +70,64 @@ async function registro(req, res) {
     }
 }
 
+async function subirAvatar(req, res) {
+    try {
+        if (!req.files || !req.files.avatar) {
+            return res.status(400).send({ textoError: 'No has proporcionado un fichero' });
+        }
+
+        console.log(req.files);
+
+        // Obtener el nombre del fichero para guardarlo en la bd en el usuario
+        const rutaF = req.files.avatar.path.split('/');
+        // datosUs lo hemos creado en el req al validar el token
+        const us = await usuario.findByPk(req.datosUS.id);
+        us.avatar = rutaF[1];
+
+        if (us.changed('avatar')) {
+            await us.save();
+            return res.status(200).send({ mensaje: 'Avatar Actualizado' });
+        }
+
+        return res.status(200).send({ mensaje: 'No se han modificado los datos' });
+        
+    } catch (error) {
+        // En caso de error, enviar la respuesta de error
+        return res.status(500).send({ textoError: error });
+    }
+
+}
+
+
+async function obtenerAvatar(req, res) {
+    try {
+          //Comprobrar el usuario existe y tiene avatar
+    const us = await usuario.findByPk(req.datosUS.id);
+    if(!us || !us.avatar){
+        throw 'Usuario no existe o no tiene avatar';
+    }
+    else{
+        const nombreF =`./avatars/${us.avatar}`;
+        //Acceder al ficchero para devolverlo
+        fs.stat(nombreF,(error,stats)=>{
+            if(error){
+                throw 'imagen no disponible';
+            }
+            else{
+                res.sendFile(path.resolve(nombreF));
+            }
+        });
+    }
+    } catch (error) {
+        res.status(500).send({textoError: error});
+        
+    }
+}
+
 // Exportar funciones para usarlas fuera de este fichero
 module.exports = {
     login,
-    registro
+    registro,
+    subirAvatar,
+    obtenerAvatar
 };

@@ -13,71 +13,44 @@
     <div class="container my-5">
         <h1 class="text-center mb-4">Reserva de Recursos</h1>
 
-        <!-- Crear fila para las columnas del formulario y las tablas -->
         <div class="row">
-            <!-- Columna del formulario a la izquierda -->
             <div class="col-md-6">
-                <div class="mb-5">
-                    <h2>Hacer Reserva</h2>
-                    <form id="reserva-form">
-                        <div class="mb-3">
-                            <label for="empleado" class="form-label">Empleado:</label>
-                            <input type="text" id="empleado" class="form-control" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="fechaI" class="form-label">Fecha Inicio:</label>
-                            <input type="datetime-local" id="fechaI" class="form-control" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="fechaF" class="form-label">Fecha Fin:</label>
-                            <input type="datetime-local" id="fechaF" class="form-control" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="recurso" class="form-label">Recurso:</label>
-                            <select id="recurso" class="form-select" required></select>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary">Reservar</button>
-                    </form>
-                </div>
+                <h2>Hacer Reserva</h2>
+                <form id="reserva-form">
+                    <div class="mb-3">
+                        <label for="empleado" class="form-label">Empleado:</label>
+                        <input type="text" id="empleado" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fechaI" class="form-label">Fecha Inicio:</label>
+                        <input type="datetime-local" id="fechaI" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fechaF" class="form-label">Fecha Fin:</label>
+                        <input type="datetime-local" id="fechaF" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="recurso" class="form-label">Recurso:</label>
+                        <select id="recurso" class="form-select" required></select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Reservar</button>
+                </form>
             </div>
 
-            <!-- Columna de las tablas a la derecha -->
             <div class="col-md-6">
-                <div class="mb-5">
-                    <h2>Recursos Disponibles</h2>
-                    <table class="table table-bordered table-striped">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>ID</th>
-                                <th>Nombre</th>
-                                <th>Tipo</th>
-                                <th>Creado</th>
-                                <th>Actualizado</th>
-                            </tr>
-                        </thead>
-                        <tbody id="recursos-list"></tbody>
-                    </table>
-                </div>
-
-                <div class="mb-5">
-                    <h2>Reservas Existentes</h2>
-                    <table class="table table-bordered table-striped">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>ID</th>
-                                <th>Empleado</th>
-                                <th>Recurso</th>
-                                <th>Fecha Inicio</th>
-                                <th>Fecha Fin</th>
-                            </tr>
-                        </thead>
-                        <tbody id="reservas-list"></tbody>
-                    </table>
-                </div>
+                <h2>Reservas Existentes</h2>
+                <table class="table table-bordered table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Empleado</th>
+                            <th>Recurso</th>
+                            <th>Fecha Inicio</th>
+                            <th>Fecha Fin</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reservas-list"></tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -86,25 +59,11 @@
         function loadRecursos() {
             axios.get('http://localhost/DWES2425/U5/APIReserva/public/api/recursos')
                 .then(response => {
-                    const recursosList = document.getElementById('recursos-list');
                     const recursoSelect = document.getElementById('recurso'); 
-                    recursosList.innerHTML = ''; 
                     recursoSelect.innerHTML = ''; 
-
                     response.data.forEach(recurso => {
-                        recursosList.innerHTML += `
-                            <tr>
-                                <td>${recurso.id}</td>
-                                <td>${recurso.nombre}</td>
-                                <td>${recurso.tipo}</td>
-                                <td>${new Date(recurso.created_at).toLocaleString()}</td>
-                                <td>${new Date(recurso.updated_at).toLocaleString()}</td>
-                            </tr>
-                        `;
-
-                        recursoSelect.innerHTML += `
-                            <option value="${recurso.id}">${recurso.nombre}</option>
-                        `;
+                        recursoSelect.innerHTML += `<option value="${recurso.id}">
+                            ${recurso.nombre}-(${recurso.tipo})</option>`;
                     });
                 })
                 .catch(error => console.error('Error al cargar los recursos:', error));
@@ -115,60 +74,34 @@
                 .then(response => {
                     const reservasList = document.getElementById('reservas-list');
                     reservasList.innerHTML = ''; 
-
-                    const reservas = response.data.data;
-
-                    if (Array.isArray(reservas)) {
-                        if (reservas.length === 0) {
-                            reservasList.innerHTML = '<tr><td colspan="5" class="text-center">No hay reservas.</td></tr>';
-                            return;
-                        }
-
-                        reservas.forEach(reserva => {
-                            const fechaInicio = new Date(reserva.fecha_inicio);
-                            const fechaFin = new Date(reserva.fecha_fin);
-
-                            if (isNaN(fechaInicio) || isNaN(fechaFin)) {
-                                console.error("Fecha no válida para la reserva con ID:", reserva.id);
-                                return; 
-                            }
-
-                            reservasList.innerHTML += `
-                                <tr>
-                                    <td>${reserva.id}</td>
-                                    <td>${reserva.empleado}</td>
-                                    <td>${reserva.recurso ? reserva.recurso.nombre : 'Recurso no disponible'}</td>
-                                    <td>${fechaInicio.toLocaleString()}</td>
-                                    <td>${fechaFin.toLocaleString()}</td>
-                                </tr>
-                            `;
-                        });
-                    } else {
-                        console.error('no contiene un array de reservas', response.data);
-                        reservasList.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error: La respuesta de la API no es válida.</td></tr>';
-                    }
+                    response.data.data.forEach(reserva => {
+                        const fechaInicio = new Date(reserva.fecha_inicio).toLocaleString();
+                        const fechaFin = new Date(reserva.fecha_fin).toLocaleString();
+                        reservasList.innerHTML += `
+                            <tr>
+                                <td>${reserva.id}</td>
+                                <td>${reserva.empleado}</td>
+                                <td>${reserva.recurso ? reserva.recurso.nombre : 'No disponible'}</td>
+                                <td>${fechaInicio}</td>
+                                <td>${fechaFin}</td>
+                            </tr>
+                        `;
+                    });
                 })
                 .catch(error => {
                     console.error('Error al cargar las reservas:', error);
-                    const reservasList = document.getElementById('reservas-list');
-                    reservasList.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error al cargar las reservas.</td></tr>';
+                    document.getElementById('reservas-list').innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error al cargar las reservas.</td></tr>';
                 });
         }
 
         document.getElementById('reserva-form').addEventListener('submit', function(event) {
             event.preventDefault();
-
             const empleado = document.getElementById('empleado').value;
             const fechaI = document.getElementById('fechaI').value;
             const fechaF = document.getElementById('fechaF').value;
             const recurso_id = document.getElementById('recurso').value;
 
-            axios.post('http://localhost/DWES2425/U5/APIReserva/public/api/reservas', {
-                empleado,
-                fechaI,
-                fechaF,
-                recurso_id
-            })
+            axios.post('http://localhost/DWES2425/U5/APIReserva/public/api/reservas', { empleado, fechaI, fechaF, recurso_id })
                 .then(response => {
                     alert('Reserva realizada con éxito');
                     loadRecursos();  

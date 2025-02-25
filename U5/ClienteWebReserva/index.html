@@ -11,7 +11,7 @@
 
 <body>
     <div class="container my-5">
-        <h1 class="text-center mb-4">Reserva de Recursos</h1>
+        <h1 class="text-center mb-4">Reservas de Recursos </h1>
 
         <div class="row">
             <div class="col-md-6">
@@ -104,6 +104,7 @@
             axios.post('http://localhost/DWES2425/U5/APIReserva/public/api/reservas', { empleado, fechaI, fechaF, recurso_id })
                 .then(response => {
                     alert('Reserva realizada con éxito');
+                    alert('El Empleado: ' + empleado + ' ha reservado el recurso: ' + recurso_id + ' del ' + fechaI + ' al ' + fechaF);
                     loadRecursos();  
                     loadReservas(); 
                 })

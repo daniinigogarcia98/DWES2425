@@ -71,10 +71,9 @@
             axios.get('http://localhost/DWES2425/U5/APIReserva/public/api/recursos')
                 .then(response => {
                     const recursoSelect = document.getElementById('recurso');
-                    recursoSelect.innerHTML = ''; // Limpiar el contenido del select
+                    recursoSelect.innerHTML = ''; 
 
                     response.data.forEach(recurso => {
-                        // Mostrar nombre y tipo del recurso en el desplegable
                         recursoSelect.innerHTML += `
                             <option value="${recurso.id}">${recurso.nombre} (${recurso.tipo})</option>
                         `;

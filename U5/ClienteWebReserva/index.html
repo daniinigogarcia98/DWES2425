@@ -13,29 +13,31 @@
     <div class="container my-5">
         <h1 class="text-center mb-4">Reserva de Recursos</h1>
 
+      
         <div class="row">
+           
             <div class="col-md-6">
                 <div class="mb-5">
                     <h2>Hacer Reserva</h2>
                     <form id="reserva-form">
                         <div class="mb-3">
                             <label for="empleado" class="form-label">Empleado:</label>
-                            <input type="text" id="empleado" class="form-control" required>
+                            <input type="text" id="empleado" class="form-control" >
                         </div>
 
                         <div class="mb-3">
                             <label for="fechaI" class="form-label">Fecha Inicio:</label>
-                            <input type="datetime-local" id="fechaI" class="form-control" required>
+                            <input type="datetime-local" id="fechaI" class="form-control" >
                         </div>
 
                         <div class="mb-3">
                             <label for="fechaF" class="form-label">Fecha Fin:</label>
-                            <input type="datetime-local" id="fechaF" class="form-control" required>
+                            <input type="datetime-local" id="fechaF" class="form-control" >
                         </div>
 
                         <div class="mb-3">
                             <label for="recurso" class="form-label">Recurso:</label>
-                            <select id="recurso" class="form-select" required></select>
+                            <select id="recurso" class="form-select" ></select>
                         </div>
 
                         <button type="submit" class="btn btn-primary">Reservar</button>
@@ -62,25 +64,49 @@
                 </div>
             </div>
         </div>
+
+        <!-- Mensaje de Cargando -->
+        <div id="loading-message" class="text-center" style="display:none;">
+            <p>Cargando...</p>
+        </div>
     </div>
 
     <script>
+        function showLoading(show) {
+            const loadingMessage = document.getElementById('loading-message');
+            if (show) {
+                loadingMessage.style.display = 'block';
+            } else {
+                loadingMessage.style.display = 'none';
+            }
+        }
+
         function loadRecursos() {
+            showLoading(true); // Mostrar "Cargando..."
+
             axios.get('http://localhost/DWES2425/U5/APIReserva/public/api/recursos')
                 .then(response => {
                     const recursoSelect = document.getElementById('recurso');
-                    recursoSelect.innerHTML = ''; 
+                    recursoSelect.innerHTML = ''; // Limpiar el contenido del select
 
                     response.data.forEach(recurso => {
+                        // Mostrar nombre y tipo del recurso en el desplegable
                         recursoSelect.innerHTML += `
                             <option value="${recurso.id}">${recurso.nombre} (${recurso.tipo})</option>
                         `;
                     });
+
+                    showLoading(false); 
                 })
-                .catch(error => console.error('Error al cargar los recursos:', error));
+                .catch(error => {
+                    console.error('Error al cargar los recursos:', error);
+                    showLoading(false); 
+                });
         }
 
         function loadReservas() {
+            showLoading(true); 
+
             axios.get('http://localhost/DWES2425/U5/APIReserva/public/api/reservas')
                 .then(response => {
                     const reservasList = document.getElementById('reservas-list');
@@ -91,6 +117,7 @@
                     if (Array.isArray(reservas)) {
                         if (reservas.length === 0) {
                             reservasList.innerHTML = '<tr><td colspan="5" class="text-center">No hay reservas.</td></tr>';
+                            showLoading(false);
                             return;
                         }
 
@@ -100,6 +127,7 @@
 
                             if (isNaN(fechaInicio) || isNaN(fechaFin)) {
                                 console.error("Fecha no válida para la reserva con ID:", reserva.id);
+                                showLoading(false); 
                                 return; 
                             }
 
@@ -117,21 +145,45 @@
                         console.error('no contiene un array de reservas', response.data);
                         reservasList.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error: La respuesta de la API no es válida.</td></tr>';
                     }
+
+                    showLoading(false); 
                 })
                 .catch(error => {
                     console.error('Error al cargar las reservas:', error);
                     const reservasList = document.getElementById('reservas-list');
                     reservasList.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error al cargar las reservas.</td></tr>';
+                    showLoading(false); 
                 });
+        }
+
+ 
+        function validateForm() {
+            const empleado = document.getElementById('empleado').value;
+            const fechaI = document.getElementById('fechaI').value;
+            const fechaF = document.getElementById('fechaF').value;
+            const recurso_id = document.getElementById('recurso').value;
+
+            if (!empleado || !fechaI || !fechaF || !recurso_id) {
+                alert('Por favor, completa todos los campos.');
+                return false;
+            }
+
+            return true;
         }
 
         document.getElementById('reserva-form').addEventListener('submit', function(event) {
             event.preventDefault();
 
+            if (!validateForm()) {
+                return;
+            }
+
             const empleado = document.getElementById('empleado').value;
             const fechaI = document.getElementById('fechaI').value;
             const fechaF = document.getElementById('fechaF').value;
             const recurso_id = document.getElementById('recurso').value;
+
+            showLoading(true);
 
             axios.post('http://localhost/DWES2425/U5/APIReserva/public/api/reservas', {
                 empleado,
@@ -147,6 +199,9 @@
                 .catch(error => {
                     alert('Error al realizar la reserva');
                     console.error(error);
+                })
+                .finally(() => {
+                    showLoading(false); 
                 });
         });
 

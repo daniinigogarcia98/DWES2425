@@ -48,22 +48,6 @@
             <!-- Columna de las tablas a la derecha -->
             <div class="col-md-6">
                 <div class="mb-5">
-                    <h2>Recursos Disponibles</h2>
-                    <table class="table table-bordered table-striped">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>ID</th>
-                                <th>Nombre</th>
-                                <th>Tipo</th>
-                                <th>Creado</th>
-                                <th>Actualizado</th>
-                            </tr>
-                        </thead>
-                        <tbody id="recursos-list"></tbody>
-                    </table>
-                </div>
-
-                <div class="mb-5">
                     <h2>Reservas Existentes</h2>
                     <table class="table table-bordered table-striped">
                         <thead class="table-dark">
@@ -86,24 +70,13 @@
         function loadRecursos() {
             axios.get('http://localhost/DWES2425/U5/APIReserva/public/api/recursos')
                 .then(response => {
-                    const recursosList = document.getElementById('recursos-list');
-                    const recursoSelect = document.getElementById('recurso'); 
-                    recursosList.innerHTML = ''; 
-                    recursoSelect.innerHTML = ''; 
+                    const recursoSelect = document.getElementById('recurso');
+                    recursoSelect.innerHTML = ''; // Limpiar el contenido del select
 
                     response.data.forEach(recurso => {
-                        recursosList.innerHTML += `
-                            <tr>
-                                <td>${recurso.id}</td>
-                                <td>${recurso.nombre}</td>
-                                <td>${recurso.tipo}</td>
-                                <td>${new Date(recurso.created_at).toLocaleString()}</td>
-                                <td>${new Date(recurso.updated_at).toLocaleString()}</td>
-                            </tr>
-                        `;
-
+                        // Mostrar nombre y tipo del recurso en el desplegable
                         recursoSelect.innerHTML += `
-                            <option value="${recurso.id}">${recurso.nombre}</option>
+                            <option value="${recurso.id}">${recurso.nombre} (${recurso.tipo})</option>
                         `;
                     });
                 })
